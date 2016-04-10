@@ -6,6 +6,7 @@ Ghost::Ghost() {
 	vel = 1;
 	DIRECTION = GHOST_UP;
 	frameTime = 0;
+	NEXT_MOVE = NONE;
 	PREFERRED_X = NONE;
 	PREFERRED_Y = NONE;
 	isDead = false;
@@ -166,16 +167,21 @@ void Ghost::move() {
 		DIRECTION = way[0];
 	}
 	else if(!way.empty()) {
-		int xAvailable = NONE;
-		int yAvailable = NONE;
 		for (unsigned int i = 0; i < way.size(); i++) {
-			if (way[i] == getOpposite() && !canReverse) {
+			if (way[i] == getOpposite()) {
 				way.erase(way.begin() + i);
 			}
 		}
-		canReverse = false;
 
-		for (unsigned int i = 0; i < way.size(); i++) {
+		srand(time(0));
+		int selectedWay = rand() % way.size();
+		DIRECTION = way[selectedWay];
+
+		/*if (NEXT_MOVE != NONE) {
+			DIRECTION = NEXT_MOVE;
+		}*/
+
+		/*for (unsigned int i = 0; i < way.size(); i++) {
 			if (way[i] == PREFERRED_X) {
 				xAvailable = i;
 			}
@@ -195,7 +201,7 @@ void Ghost::move() {
 		}
 		if (xAvailable != NONE && yAvailable == NONE) {
 			DIRECTION = way[xAvailable];
-		}
+		}*/
 	}
 
 	switch (DIRECTION) {
@@ -227,12 +233,45 @@ void Ghost::move() {
 }
 
 void Ghost::backToHome() {
+	Path* start = new Path(x / 30, y / 30, 0, NULL, &map);
+	Path* end = new Path(xDefault / 30, yDefault / 30, 0, NULL);
+	NEXT_MOVE = NONE;
 	if (!isDead) {
 		setMode(DEAD_MODE);
 		isDead = true;
 		canReverse = true;
+		path = start->findPath(end);
+		counter = 1;
 	}
-	int xDistance = 270 - x;
+	if (x == xDefault && y == yDefault) {
+		isDead = false;
+		setMode(NORMAL_MODE);
+		NEXT_MOVE = NONE;
+		return;
+	}
+	
+	int nextX = path[counter][0] * 30;
+	int nextY = path[counter][1] * 30;
+
+	if (nextX == x && nextY - y < 0) {
+		NEXT_MOVE = GHOST_UP;
+	}
+	else if (nextX == x && nextY - y > 0) {
+		NEXT_MOVE = GHOST_DOWN;
+	}
+	else if (nextY == y && nextX - x < 0) {
+		NEXT_MOVE = GHOST_LEFT;
+	}
+	else if (nextY == y && nextX - x > 0) {
+		NEXT_MOVE = GHOST_RIGHT;
+	}
+	cout << NEXT_MOVE << endl;
+
+	if (x == nextX && y == nextY) {
+		counter++;
+	}
+
+	/*int xDistance = 270 - x;
 	int yDistance = 240 - y;
 
 	if (isInHome()) {
@@ -255,12 +294,11 @@ void Ghost::backToHome() {
 	}
 	else if (yDistance < 0) {
 		PREFERRED_Y = GHOST_UP;
-	}
+	}*/
 
-	if (PREFERRED_X == NONE && PREFERRED_Y == NONE) {
-		isDead = false;
-		setMode(NORMAL_MODE);
-	}
+	//if (PREFERRED_X == NONE && PREFERRED_Y == NONE) {
+	//	
+	//}
 }
 
 bool Ghost::isInHome() {
