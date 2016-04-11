@@ -31,7 +31,6 @@ public:
 	void move();
 	bool isInHome();
 	bool isWall();
-	bool dead() { return isDead; };
 	bool isPacmanCollide();
 	bool checkCollision(int wallX, int wallY, int w = 30, int h = 30);
 	int getOpposite();
@@ -39,15 +38,15 @@ public:
 	int getY() { return y; };
 	void render(int frame);
 	Pacman* pacman;
+	int MODE;
 private:
 	std::vector<Ghost*> ghost;
 	int x, y, xDefault, yDefault, frameTime;
 	int vel;
 	int NEXT_MOVE_X, NEXT_MOVE_Y;
 	int DIRECTION;
-	int MODE;
+	bool isGoingHome;
 	int counter;
-	bool isDead;
 	std::string filePath;
 	LTexture ghostTexture;
 	SDL_Rect ghostClip[8];
