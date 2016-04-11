@@ -282,10 +282,6 @@ void Ghost::backToHome() {
 	else if (nextX - x > 0) {
 		NEXT_MOVE_X = GHOST_RIGHT;
 	}
-	std::cout << "------------------------------------------" << endl;
-	std::cout << "Next X : " << nextX << " Current X : " << x << endl;
-	std::cout << "Next Y : " << nextY << " Current Y : " << y << endl;
-	std::cout << "Next move x : " << NEXT_MOVE_X << " Next move y : " << NEXT_MOVE_Y << endl;
 
 	if (x == nextX && y == nextY) {
 		counter++;
@@ -374,19 +370,6 @@ int Ghost::getOpposite() {
 	}
 	return -1;
 }
-
-//std::vector<int> Ghost::getPosition() {
-//	std::vector<int> coor;
-//	if (!isDead) {
-//		coor.push_back(x);
-//		coor.push_back(y);
-//	}
-//	else {
-//		coor.push_back(-1);
-//		coor.push_back(-1);
-//	}
-//	return coor;
-//}
 
 Ghost::~Ghost() {
 	free();
