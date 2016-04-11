@@ -6,11 +6,9 @@ Ghost::Ghost() {
 	vel = 1;
 	DIRECTION = GHOST_UP;
 	frameTime = 0;
-	NEXT_MOVE = NONE;
-	PREFERRED_X = NONE;
-	PREFERRED_Y = NONE;
+	NEXT_MOVE_X = NONE;
+	NEXT_MOVE_Y = NONE;
 	isDead = false;
-	canReverse = false;
 	pacman = NULL;
 }
 
@@ -141,67 +139,85 @@ void Ghost::render(int frame) {
 }
 
 void Ghost::move() {
-	std::vector<int> way;
-	
-	y -= vel;
-	if (!isWall()) {
-		way.push_back(GHOST_UP);
-	}
-	y += vel * 2;
-	if (!isWall()) {
-		way.push_back(GHOST_DOWN);
-	}
-	y -= vel;
-
-	x -= vel;
-	if (!isWall()) {
-		way.push_back(GHOST_LEFT);
-	}
-	x += vel * 2;
-	if (!isWall()) {
-		way.push_back(GHOST_RIGHT);
-	}
-	x -= vel;
-
-	if (way.size() == 1) {
-		DIRECTION = way[0];
-	}
-	else if(!way.empty()) {
-		for (unsigned int i = 0; i < way.size(); i++) {
-			if (way[i] == getOpposite()) {
-				way.erase(way.begin() + i);
-			}
+	bool isNextMove = false;
+	switch (NEXT_MOVE_X) {
+	case GHOST_RIGHT:
+		x += vel;
+		if (!isWall()) {
+			DIRECTION = NEXT_MOVE_X;
+			isNextMove = true;
 		}
+		x -= vel;
+		break;
 
-		srand(time(0));
-		int selectedWay = rand() % way.size();
-		DIRECTION = way[selectedWay];
-
-		/*if (NEXT_MOVE != NONE) {
-			DIRECTION = NEXT_MOVE;
-		}*/
-
-		/*for (unsigned int i = 0; i < way.size(); i++) {
-			if (way[i] == PREFERRED_X) {
-				xAvailable = i;
-			}
-			if (way[i] == PREFERRED_Y) {
-				yAvailable = i;
-			}
+	case GHOST_LEFT:
+		x -= vel;
+		if (!isWall()) {
+			DIRECTION = NEXT_MOVE_X;
+			isNextMove = true;
 		}
+		x += vel;
+		break;		
+	}
 
-		if (xAvailable == NONE && yAvailable == NONE) {
+	switch(NEXT_MOVE_Y) {
+		case GHOST_UP:
+			y -= vel;
+			if (!isWall()) {
+				DIRECTION = NEXT_MOVE_Y;
+				isNextMove = true;
+			}
+			y += vel;
+			break;
+
+		case GHOST_DOWN:
+			y += vel;
+			if (!isWall()) {
+				DIRECTION = NEXT_MOVE_Y;
+				isNextMove = true;
+			}
+			y -= vel;
+			break;
+	}
+
+	if(!isNextMove){
+		std::vector<int> way;
+
+		y -= vel;
+		if (!isWall()) {
+			way.push_back(GHOST_UP);
+		}
+		y += vel * 2;
+		if (!isWall()) {
+			way.push_back(GHOST_DOWN);
+		}
+		y -= vel;
+
+		x -= vel;
+		if (!isWall()) {
+			way.push_back(GHOST_LEFT);
+		}
+		x += vel * 2;
+		if (!isWall()) {
+			way.push_back(GHOST_RIGHT);
+		}
+		x -= vel;
+
+		if (way.size() == 1) {
+			DIRECTION = way[0];
+		}
+		else if (!way.empty()) {
+			for (unsigned int i = 0; i < way.size(); i++) {
+				if (way[i] == getOpposite()) {
+					way.erase(way.begin() + i);
+					break;
+				}
+			}
+
 			srand(time(0));
 			int selectedWay = rand() % way.size();
 			DIRECTION = way[selectedWay];
 		}
-
-		if (yAvailable != NONE) {
-			DIRECTION = way[yAvailable];
-		}
-		if (xAvailable != NONE && yAvailable == NONE) {
-			DIRECTION = way[xAvailable];
-		}*/
 	}
 
 	switch (DIRECTION) {
@@ -235,70 +251,45 @@ void Ghost::move() {
 void Ghost::backToHome() {
 	Path* start = new Path(x / 30, y / 30, 0, NULL, &map);
 	Path* end = new Path(xDefault / 30, yDefault / 30, 0, NULL);
-	NEXT_MOVE = NONE;
+	NEXT_MOVE_X = NONE;
+	NEXT_MOVE_Y = NONE;
 	if (!isDead) {
 		setMode(DEAD_MODE);
 		isDead = true;
-		canReverse = true;
 		path = start->findPath(end);
 		counter = 1;
 	}
 	if (x == xDefault && y == yDefault) {
 		isDead = false;
 		setMode(NORMAL_MODE);
-		NEXT_MOVE = NONE;
+		NEXT_MOVE_X = NONE;
+		NEXT_MOVE_Y = NONE;
 		return;
 	}
 	
 	int nextX = path[counter][0] * 30;
 	int nextY = path[counter][1] * 30;
 
-	if (nextX == x && nextY - y < 0) {
-		NEXT_MOVE = GHOST_UP;
+	if (nextY - y < 0) {
+		NEXT_MOVE_Y = GHOST_UP;
 	}
-	else if (nextX == x && nextY - y > 0) {
-		NEXT_MOVE = GHOST_DOWN;
+	else if (nextY - y > 0) {
+		NEXT_MOVE_Y = GHOST_DOWN;
 	}
-	else if (nextY == y && nextX - x < 0) {
-		NEXT_MOVE = GHOST_LEFT;
+	if (nextX - x < 0) {
+		NEXT_MOVE_X = GHOST_LEFT;
 	}
-	else if (nextY == y && nextX - x > 0) {
-		NEXT_MOVE = GHOST_RIGHT;
+	else if (nextX - x > 0) {
+		NEXT_MOVE_X = GHOST_RIGHT;
 	}
-	cout << NEXT_MOVE << endl;
+	std::cout << "------------------------------------------" << endl;
+	std::cout << "Next X : " << nextX << " Current X : " << x << endl;
+	std::cout << "Next Y : " << nextY << " Current Y : " << y << endl;
+	std::cout << "Next move x : " << NEXT_MOVE_X << " Next move y : " << NEXT_MOVE_Y << endl;
 
 	if (x == nextX && y == nextY) {
 		counter++;
 	}
-
-	/*int xDistance = 270 - x;
-	int yDistance = 240 - y;
-
-	if (isInHome()) {
-		xDistance = xDefault - x;
-		yDistance = yDefault - y;
-	}
-
-	PREFERRED_X = NONE;
-	PREFERRED_Y = NONE;
-
-	if (xDistance > 0) {
-		PREFERRED_X = GHOST_RIGHT;
-	}
-	else if (xDistance < 0) {
-		PREFERRED_X = GHOST_LEFT;
-	}
-
-	if (yDistance > 0) {
-		PREFERRED_Y = GHOST_DOWN;
-	}
-	else if (yDistance < 0) {
-		PREFERRED_Y = GHOST_UP;
-	}*/
-
-	//if (PREFERRED_X == NONE && PREFERRED_Y == NONE) {
-	//	
-	//}
 }
 
 bool Ghost::isInHome() {

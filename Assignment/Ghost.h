@@ -6,6 +6,7 @@
 #include <vector>
 #include "Texture.h"
 #include "Pacman.h"
+#include "Path.h"
 
 const int NONE = -1;
 const int GHOST_UP = 0;
@@ -42,13 +43,15 @@ private:
 	std::vector<Ghost*> ghost;
 	int x, y, xDefault, yDefault, frameTime;
 	int vel;
+	int NEXT_MOVE_X, NEXT_MOVE_Y;
 	int DIRECTION;
 	int MODE;
-	int PREFERRED_X, PREFERRED_Y;
-	bool isDead, canReverse;
+	int counter;
+	bool isDead;
 	std::string filePath;
 	LTexture ghostTexture;
 	SDL_Rect ghostClip[8];
 	std::vector<std::vector<std::string>> map;
+	std::vector<std::vector<int>> path;
 };
 #endif
