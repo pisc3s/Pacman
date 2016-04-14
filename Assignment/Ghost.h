@@ -22,11 +22,12 @@ class Ghost {
 public:
 	Ghost();
 	~Ghost();
-	bool init(int xPos, int yPos, std::vector<std::vector<std::string>> _map, std::string filePath);
+	bool init(int priority, int xPos, int yPos, std::vector<std::vector<std::string>> _map, std::string filePath);
 	void free();
 	void addGhost(Ghost* _ghost);
 	bool setMode(int mode);
 	void setFrameTime(int frame);
+	int getPriority() { return PRIORITY; };
 	void backToHome();
 	void move();
 	bool isInHome();
@@ -43,7 +44,7 @@ private:
 	std::vector<Ghost*> ghost;
 	int x, y, xDefault, yDefault, frameTime;
 	int vel;
-	int NEXT_MOVE_X, NEXT_MOVE_Y;
+	int NEXT_MOVE_X, NEXT_MOVE_Y, PRIORITY;
 	int DIRECTION;
 	bool isGoingHome;
 	int counter;

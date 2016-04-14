@@ -12,7 +12,8 @@ Ghost::Ghost() {
 	isGoingHome = false;
 }
 
-bool Ghost::init(int xPos, int yPos, std::vector<std::vector<std::string>> _map, std::string file) {
+bool Ghost::init(int priority, int xPos, int yPos, std::vector<std::vector<std::string>> _map, std::string file) {
+	PRIORITY = priority;
 	x = xPos * 30;
 	y = yPos * 30;
 	xDefault = x;
@@ -106,24 +107,33 @@ void Ghost::render(int frame) {
 	} else if (frameTime > 0) {
 		frameTime--;
 	} else if (isInHome()) {
+		bool backHome = false;
 		int xDistance = 270 - x;
-		int yDistance = 210 - y;
-		if (xDistance > 0) {
-			x += vel;
-			DIRECTION = GHOST_RIGHT;
+
+		for (unsigned int i = 0; i < ghost.size(); i++) {
+			if (ghost[i]->isInHome() && (getPriority() > ghost[i]->getPriority())) {
+				backToHome();
+				backHome = true;
+				break;
+			}
 		}
-		if (xDistance < 0) {
-			x -= vel;
-			DIRECTION = GHOST_LEFT;
+
+		if (!backHome) {
+			if (xDistance > 0) {
+				NEXT_MOVE_X = GHOST_RIGHT;
+			}
+			else if (xDistance < 0) {
+				NEXT_MOVE_X = GHOST_LEFT;
+			}
+			else if (xDistance == 0) {
+				NEXT_MOVE_Y = GHOST_UP;
+			}
 		}
-		if (xDistance == 0 && yDistance < 0) {
-			y -= vel;
-			DIRECTION = GHOST_UP;
-		}
+		move();
 	} else {
 		move();
 	}
-
+	
 	if (MODE == NORMAL_MODE) {
 		ghostTexture.render(x, y, 30, 30, &ghostClip[frame + DIRECTION]);
 	}
@@ -223,17 +233,31 @@ void Ghost::move() {
 	switch (DIRECTION) {
 	case GHOST_UP:
 		y -= vel;
+		if (isWall()) {
+			y += vel;
+		}
 		break;
 	case GHOST_DOWN:
 		y += vel;
+		if (isWall()) {
+			y -= vel;
+		}
 		break;
 	case GHOST_LEFT:
 		x -= vel;
+		if (isWall()) {
+			x += vel;
+		}
 		break;
 	case GHOST_RIGHT:
 		x += vel;
+		if (isWall()) {
+			x -= vel;
+		}
 		break;
 	}
+	NEXT_MOVE_X = NONE;
+	NEXT_MOVE_Y = NONE;
 }
 
 void Ghost::backToHome() {
@@ -249,9 +273,14 @@ void Ghost::backToHome() {
 	if (x == xDefault && y == yDefault) {
 		isGoingHome = false;
 		setMode(NORMAL_MODE);
+		setFrameTime(180);
 		return;
 	}
-	
+
+	if (path.size() == 1) {
+		counter = 0;
+	}
+
 	int nextX = path[counter][0] * 30;
 	int nextY = path[counter][1] * 30;
 
@@ -300,9 +329,9 @@ bool Ghost::isWall() {
 			}
 		}
 	}
-	if (MODE != DEAD_MODE) {
+	if (MODE != DEAD_MODE && !isGoingHome) {
 		for (unsigned int i = 0; i < ghost.size(); i++) {
-			if (ghost[i]->MODE != DEAD_MODE) {
+			if (ghost[i]->MODE != DEAD_MODE && !ghost[i]->isInHome()) {
 				if (checkCollision(ghost[i]->getX(), ghost[i]->getY())) {
 					return true;
 				}

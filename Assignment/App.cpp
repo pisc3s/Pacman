@@ -29,6 +29,30 @@ int ghostFrame = 0;
 int powerUpFrameTime = 0;
 int redFrame = 120;
 
+//vector<vector<string>> map = {
+//	{ "X","X","X","X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X" },
+//	{ "X","o","o","o", "o", "o", "o", "o", "o", "X", "o", "o", "o", "o", "o", "o", "o", "o", "X" },
+//	{ "X","p","X","X", "o", "X", "X", "X", "o", "X", "o", "X", "X", "X", "o", "X", "X", "p", "X" },
+//	{ "X","o","o","o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "X" },
+//	{ "X","o","X","X", "o", "X", "o", "X", "X", "X", "X", "X", "o", "X", "o", "X", "X", "o", "X" },
+//	{ "X","o","o","o", "o", "X", "o", "o", "o", "X", "o", "o", "o", "X", "o", "o", "o", "o", "X" },
+//	{ "X","X","X","X", "o", "X", "X", "X", "o", "X", "o", "X", "X", "X", "o", "X", "X", "X", "X" },
+//	{ " "," "," ","X", "o", "X", "o", "o", "o", "o", "o", "o", "o", "X", "o", "X", " ", " ", " " },
+//	{ "X","X","X","X", "o", "X", "o", "X", "X", " ", "X", "X", "o", "X", "o", "X", "X", "X", "X" },
+//	{ "o","o","o","o", "o", "o", "o", "X", " ", " ", " ", "X", "o", "o", "o", "o", "o", "o", "o" },
+//	{ "X","X","X","X", "o", "X", "o", "X", "X", "X", "X", "X", "o", "X", "o", "X", "X", "X", "X" },
+//	{ " "," "," ","X", "o", "X", "o", "o", "o", "o", "o", "o", "o", "X", "o", "X", " ", " ", " " },
+//	{ "X","X","X","X", "o", "X", "o", "X", "X", "X", "X", "X", "o", "X", "o", "X", "X", "X", "X" },
+//	{ "X","o","o","o", "o", "o", "o", "o", "o", "X", "o", "o", "o", "o", "o", "o", "o", "o", "X" },
+//	{ "X","o","X","X", "o", "X", "X", "X", "o", "X", "o", "X", "X", "X", "o", "X", "X", "o", "X" },
+//	{ "X","p","o","X", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "X", "o", "p", "X" },
+//	{ "X","X","o","X", "o", "X", "o", "X", "X", "X", "X", "X", "o", "X", "o", "X", "o", "X", "X" },
+//	{ "X","o","o","o", "o", "X", "o", "o", "o", "X", "o", "o", "o", "X", "o", "o", "o", "o", "X" },
+//	{ "X","o","X","X", "X", "X", "X", "X", "o", "X", "o", "X", "X", "X", "X", "X", "X", "o", "X" },
+//	{ "X","o","o","o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "X" },
+//	{ "X","X","X","X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X" }
+//};
+
 vector<vector<string>> map = {
 	{ "X","X","X","X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X" },
 	{ "X","o","o","o", "o", "o", "o", "o", "o", "X", "o", "o", "o", "o", "o", "o", "o", "o", "X" },
@@ -36,13 +60,13 @@ vector<vector<string>> map = {
 	{ "X","o","o","o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "X" },
 	{ "X","o","X","X", "o", "X", "o", "X", "X", "X", "X", "X", "o", "X", "o", "X", "X", "o", "X" },
 	{ "X","o","o","o", "o", "X", "o", "o", "o", "X", "o", "o", "o", "X", "o", "o", "o", "o", "X" },
-	{ "X","X","X","X", "o", "X", "X", "X", "o", "X", "o", "X", "X", "X", "o", "X", "X", "X", "X" },
+	{ "X","X","X","X", "o", "X", "X", "X", "X", "X", "X", "X", "X", "X", "o", "X", "X", "X", "X" },
 	{ " "," "," ","X", "o", "X", "o", "o", "o", "o", "o", "o", "o", "X", "o", "X", " ", " ", " " },
 	{ "X","X","X","X", "o", "X", "o", "X", "X", " ", "X", "X", "o", "X", "o", "X", "X", "X", "X" },
-	{ "o","o","o","o", "o", "o", "o", "X", " ", " ", " ", "X", "o", "o", "o", "o", "o", "o", "o" },
+	{ "o","o","o","o", "o", "X", "o", "X", " ", " ", " ", "X", "o", "X", "o", "o", "o", "o", "o" },
 	{ "X","X","X","X", "o", "X", "o", "X", "X", "X", "X", "X", "o", "X", "o", "X", "X", "X", "X" },
 	{ " "," "," ","X", "o", "X", "o", "o", "o", "o", "o", "o", "o", "X", "o", "X", " ", " ", " " },
-	{ "X","X","X","X", "o", "X", "o", "X", "X", "X", "X", "X", "o", "X", "o", "X", "X", "X", "X" },
+	{ "X","X","X","X", "o", "X", "X", "X", "X", "X", "X", "X", "X", "X", "o", "X", "X", "X", "X" },
 	{ "X","o","o","o", "o", "o", "o", "o", "o", "X", "o", "o", "o", "o", "o", "o", "o", "o", "X" },
 	{ "X","o","X","X", "o", "X", "X", "X", "o", "X", "o", "X", "X", "X", "o", "X", "X", "o", "X" },
 	{ "X","p","o","X", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "X", "o", "p", "X" },
@@ -58,7 +82,6 @@ bool loadMedia();
 void close();
 void handleFrame();
 void renderMap();
-void handleGhostAtHome();
 
 int main(int argc, char* args[]) {
 	bool quit = false;
@@ -74,15 +97,6 @@ int main(int argc, char* args[]) {
 		return 0;
 	}
 
-	/*Path* start = new Path(4, 4, 0, NULL, &map);
-	Path* end = new Path(9, 8, 0, NULL);
-	vector<vector<int>> test = start->findPath(end);
-
-	cout << "--------------------------------------------" << endl;
-	for (unsigned int i = 0; i < test.size(); i++) {
-		cout << test[i][0] << "," << test[i][1] << endl;
-	}*/
-
 	redGhost.pacman = &pacman;
 	pinkGhost.pacman = &pacman;
 	blueGhost.pacman = &pacman;
@@ -93,6 +107,8 @@ int main(int argc, char* args[]) {
 	pinkGhost.addGhost(&blueGhost);
 	blueGhost.addGhost(&redGhost);
 	blueGhost.addGhost(&pinkGhost);
+
+	redGhost.setFrameTime(180);
 
 	while (!quit) {
 		while (SDL_PollEvent(&e) != 0) {
@@ -105,11 +121,9 @@ int main(int argc, char* args[]) {
 
 		handleFrame();
 		renderMap();
-		handleGhostAtHome();
 
 		pacman.render(pacmanFrame / 6);
 
-		//isDead BUG
 		if (powerUpFrameTime > 1 && powerUpFrameTime <= 180) {
 			redGhost.render(ghostFrame / 15);
 			pinkGhost.render(ghostFrame / 15);
@@ -126,35 +140,41 @@ int main(int argc, char* args[]) {
 		}
 
 		if (redGhost.isPacmanCollide()) {
-			if (powerUpFrameTime > 0 && powerUpFrameTime <= 540) {
+			if (redGhost.MODE = WEAKEN_MODE) {
+				redGhost.setMode(DEAD_MODE);
 				redGhost.backToHome();
-				redFrame = 120;
+				//redFrame = 120;
 			}
 			else {
+				redGhost.setMode(DEAD_MODE);
 				redGhost.backToHome();
-				redFrame = 120;
+				//redFrame = 120;
 				//pacman.setPosition(270, 330);
 			}
 		}
 		if (pinkGhost.isPacmanCollide()) {
-			if (powerUpFrameTime > 0 && powerUpFrameTime <= 540) {
+			if (pinkGhost.MODE = WEAKEN_MODE) {
+				pinkGhost.setMode(DEAD_MODE);
 				pinkGhost.backToHome();
-				pinkGhost.setFrameTime(120);
+				//pinkGhost.setFrameTime(120);
 			}
 			else {
+				pinkGhost.setMode(DEAD_MODE);
 				pinkGhost.backToHome();
-				pinkGhost.setFrameTime(120);
+				//pinkGhost.setFrameTime(120);
 				//pacman.setPosition(270, 330);
 			}
 		}
 		if (blueGhost.isPacmanCollide()) {
-			if (powerUpFrameTime > 0 && powerUpFrameTime <= 540) {
+			if (blueGhost.MODE = WEAKEN_MODE) {
+				blueGhost.setMode(DEAD_MODE);
 				blueGhost.backToHome();
-				blueGhost.setFrameTime(120);
+				//blueGhost.setFrameTime(120);
 			}
 			else {
+				blueGhost.setMode(DEAD_MODE);
 				blueGhost.backToHome();
-				blueGhost.setFrameTime(120);
+				//blueGhost.setFrameTime(120);
 				//pacman.setPosition(270, 330);
 			}
 		}
@@ -225,21 +245,6 @@ void renderMap() {
 	scoreboard.render(SCREEN_WIDTH - (scoreboard.getWidth() + 20), 0);
 }
 
-void handleGhostAtHome() {
-	if (redGhost.isInHome()) {
-		if (redFrame > 0) {
-			redFrame--;
-		}
-		redGhost.setFrameTime(redFrame);
-	}
-	if (pinkGhost.isInHome() && redGhost.isInHome()) {
-		pinkGhost.setFrameTime(120);
-	}
-	if ((blueGhost.isInHome() && pinkGhost.isInHome()) || (blueGhost.isInHome() && redGhost.isInHome())) {
-		blueGhost.setFrameTime(120);
-	}
-}
-
 bool init() {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		cout << "SDL could not initialize! SDL Error: " << SDL_GetError() << endl;
@@ -278,7 +283,6 @@ bool init() {
 }
 
 bool loadMedia() {
-
 	if (!wall.loadFromFile("wall.jpg")) {
 		cout << "Failed to load wall texture!\n";
 		return false;
@@ -295,8 +299,8 @@ bool loadMedia() {
 		return false;
 	}
 
-	return pacman.init(&map) && redGhost.init(9, 9, map, "redghost.png") && 
-		pinkGhost.init(8, 9, map, "pinkghost.png") && blueGhost.init(10, 9, map, "blueghost.png");
+	return pacman.init(&map) && redGhost.init(1, 9, 9, map, "redghost.png") && 
+		pinkGhost.init(2, 8, 9, map, "pinkghost.png") && blueGhost.init(3, 10, 9, map, "blueghost.png");
 }
 
 void close() {
