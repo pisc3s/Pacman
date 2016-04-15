@@ -1,5 +1,6 @@
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_mixer.h>
 #include <SDL_ttf.h>
 #include <iostream>
 #include <cmath>
@@ -17,6 +18,11 @@ const int SCREEN_HEIGHT = 21 * 30;
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 TTF_Font* font = NULL;
+
+Mix_Music* bgm = NULL;
+Mix_Chunk* sound_pacman_die = NULL;
+Mix_Chunk* sound_ghost_die = NULL;
+
 LTexture scoreboard;
 LTexture wall;
 LTexture powerup;
@@ -109,6 +115,8 @@ int main(int argc, char* args[]) {
 
 	redGhost.setFrameTime(90);
 
+	Mix_PlayMusic(bgm, -1);
+
 	while (!quit) {
 		while (SDL_PollEvent(&e) != 0) {
 			if (e.type == SDL_QUIT || (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)) {
@@ -139,33 +147,42 @@ int main(int argc, char* args[]) {
 		}
 
 		if (redGhost.isPacmanCollide()) {
-			if (redGhost.MODE = WEAKEN_MODE) {
+			if (redGhost.MODE == WEAKEN_MODE || redGhost.MODE == WEAKEN_MODE_ENDING) {
+				Mix_PlayChannel(1, sound_ghost_die, 0);
+				pacman.addScore(1000);
 				redGhost.setMode(DEAD_MODE);
 				redGhost.backToHome();
 			}
-			else {
+			else if (redGhost.MODE != DEAD_MODE) {
+				Mix_PlayChannel(1, sound_pacman_die, 0);
 				redGhost.setMode(DEAD_MODE);
 				redGhost.backToHome();
 				//pacman.setPosition(270, 330);
 			}
 		}
 		if (pinkGhost.isPacmanCollide()) {
-			if (pinkGhost.MODE = WEAKEN_MODE) {
+			if (pinkGhost.MODE == WEAKEN_MODE || pinkGhost.MODE == WEAKEN_MODE_ENDING) {
+				Mix_PlayChannel(2, sound_ghost_die, 0);
+				pacman.addScore(1000);
 				pinkGhost.setMode(DEAD_MODE);
 				pinkGhost.backToHome();
 			}
-			else {
+			else if (pinkGhost.MODE != DEAD_MODE) {
+				Mix_PlayChannel(2, sound_pacman_die, 0);
 				pinkGhost.setMode(DEAD_MODE);
 				pinkGhost.backToHome();
 				//pacman.setPosition(270, 330);
 			}
 		}
 		if (blueGhost.isPacmanCollide()) {
-			if (blueGhost.MODE = WEAKEN_MODE) {
+			if (blueGhost.MODE == WEAKEN_MODE || blueGhost.MODE == WEAKEN_MODE_ENDING) {
+				Mix_PlayChannel(3, sound_ghost_die, 0);
+				pacman.addScore(1000);
 				blueGhost.setMode(DEAD_MODE);
 				blueGhost.backToHome();
 			}
-			else {
+			else if(blueGhost.MODE != DEAD_MODE) {
+				Mix_PlayChannel(3, sound_pacman_die, 0);
 				blueGhost.setMode(DEAD_MODE);
 				blueGhost.backToHome();
 				//pacman.setPosition(270, 330);
@@ -239,7 +256,7 @@ void renderMap() {
 }
 
 bool init() {
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
 		cout << "SDL could not initialize! SDL Error: " << SDL_GetError() << endl;
 		return false;
 	}
@@ -267,6 +284,11 @@ bool init() {
 		return false;
 	}
 
+	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+		cout << "SDL_mixer could not initialize! SDL_mixer Error: " << Mix_GetError() << endl;
+		return false;
+	}
+
 	if (TTF_Init() == -1) {
 		cout << "SDL_ttf could not initialize! SDL_ttf Error: " << TTF_GetError();
 		return false;
@@ -283,6 +305,24 @@ bool loadMedia() {
 
 	if (!powerup.loadFromFile("powerup.png")) {
 		cout << "Failed to load powerup texture!\n";
+		return false;
+	}
+
+	bgm = Mix_LoadMUS("bgm.mp3");
+	if (bgm == NULL) {
+		cout << "Failed to load background music! SDL_mixer Error: " << Mix_GetError() << endl;
+		return false;
+	}
+
+	sound_pacman_die = Mix_LoadWAV("sound_pacman_die.mp3");
+	if (sound_pacman_die == NULL) {
+		cout << "Failed to load pacman die sound effect! SDL_mixer Error: " << Mix_GetError() << endl;
+		return false;
+	}
+
+	sound_ghost_die = Mix_LoadWAV("sound_ghost_die.mp3");
+	if (sound_ghost_die == NULL) {
+		cout << "Failed to load ghost die sound effect! SDL_mixer Error: " << Mix_GetError() << endl;
 		return false;
 	}
 
@@ -306,6 +346,14 @@ void close() {
 	pinkGhost.free();
 	blueGhost.free();
 
+	Mix_FreeChunk(sound_pacman_die);
+	Mix_FreeChunk(sound_ghost_die);
+	sound_pacman_die = NULL;
+	sound_ghost_die = NULL;
+
+	Mix_FreeMusic(bgm);
+	bgm = NULL;
+
 	TTF_CloseFont(font);
 	font = NULL;
 
@@ -314,6 +362,7 @@ void close() {
 	gWindow = NULL;
 	gRenderer = NULL;
 
+	Mix_Quit();
 	TTF_Quit();
 	IMG_Quit();
 	SDL_Quit();

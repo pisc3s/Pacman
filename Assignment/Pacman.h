@@ -3,6 +3,7 @@
 #ifndef __PACMAN_H
 #define __PACMAN_H
 
+#include <SDL_mixer.h>
 #include <vector>
 #include "Texture.h"
 
@@ -19,6 +20,7 @@ public:
 	bool checkCollision(int wallX, int wallY, int w = 30, int h = 30);
 	void render(int frame);
 	void setPosition(int xPos, int yPos);
+	void addScore(int _score);
 	int getX() { return x; };
 	int getY() { return y; };
 	std::string getScore();
@@ -31,6 +33,8 @@ private:
 	double angle;
 	int score;
 	bool POWERUP;
+	Mix_Chunk* sound_food;
+	Mix_Chunk* sound_powerup;
 	SDL_RendererFlip flip;
 	LTexture pacmanTexture;
 	SDL_Rect pacmanClip[7];
