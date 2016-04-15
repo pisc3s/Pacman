@@ -305,7 +305,7 @@ void Ghost::backToHome() {
 }
 
 bool Ghost::isInHome() {
-	if (x >= 240 && x <= 300 && y >= 211 && y <= 270) {
+	if (x >= 240 && x <= 300 && y == 270 && MODE != DEAD_MODE) {
 		return true;
 	}
 	return false;

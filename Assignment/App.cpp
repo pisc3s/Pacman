@@ -27,7 +27,6 @@ Ghost pinkGhost;
 int pacmanFrame = 0;
 int ghostFrame = 0;
 int powerUpFrameTime = 0;
-int redFrame = 120;
 
 //vector<vector<string>> map = {
 //	{ "X","X","X","X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X" },
