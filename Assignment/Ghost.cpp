@@ -6,6 +6,7 @@ Ghost::Ghost() {
 	vel = 1;
 	DIRECTION = GHOST_UP;
 	frameTime = 0;
+	chaseFrame = 0;
 	NEXT_MOVE_X = NONE;
 	NEXT_MOVE_Y = NONE;
 	pacman = NULL;
@@ -131,6 +132,7 @@ void Ghost::render(int frame) {
 		}
 		move();
 	} else {
+		chasePacman();
 		move();
 	}
 	
@@ -260,15 +262,87 @@ void Ghost::move() {
 	NEXT_MOVE_Y = NONE;
 }
 
+void Ghost::chasePacman() {
+	Path* start = new Path(x / 30, y / 30, 0, NULL, &map);
+	Path* end = new Path(pacman->getX() / 30, pacman->getY() / 30, 0, NULL);
+	vector<vector<int>> _ghost;
+	for (unsigned int i = 0; i < ghost.size(); i++) {
+		vector<int> temp;
+		temp.push_back(ghost[i]->getX());
+		temp.push_back(ghost[i]->getY());
+		_ghost.push_back(temp);
+	}
+	start->ghost = _ghost;
+	int nextX = NONE;
+	int nextY = NONE;
+	NEXT_MOVE_X = NONE;
+	NEXT_MOVE_Y = NONE;
+
+	chaseFrame--;
+
+	if (chaseFrame <= 0) {
+		chasePath = start->findPath(end);
+		chaseFrame = 100;
+		chaseCounter = 1;
+	}
+	
+	if (chasePath.size() == 1) {
+		chaseCounter = 0;
+	}
+
+	nextX = chasePath[chaseCounter][0] * 30;
+	nextY = chasePath[chaseCounter][1] * 30;
+
+	if (x == nextX && y == nextY) {
+		chaseCounter++;
+		if (chaseCounter >= chasePath.size()) {
+			chaseFrame = 0;
+			nextX = NONE;
+			nextY = NONE;
+		}
+		else {
+			nextX = chasePath[chaseCounter][0] * 30;
+			nextY = chasePath[chaseCounter][1] * 30;
+		}
+	}
+
+	if (nextX == NONE && nextY == NONE) {
+		return;
+	}
+
+	if (nextY - y < 0) {
+		if (DIRECTION != GHOST_DOWN) {
+			NEXT_MOVE_Y = GHOST_UP;
+		}
+	}
+	else if (nextY - y > 0) {
+		if (DIRECTION != GHOST_UP) {
+			NEXT_MOVE_Y = GHOST_DOWN;
+		}
+	}
+	if (nextX - x < 0) {
+		if (DIRECTION != GHOST_RIGHT) {
+			NEXT_MOVE_X = GHOST_LEFT;
+		}
+	}
+	else if (nextX - x > 0) {
+		if (DIRECTION != GHOST_LEFT) {
+			NEXT_MOVE_X = GHOST_RIGHT;
+		}
+	}
+}
+
 void Ghost::backToHome() {
 	Path* start = new Path(x / 30, y / 30, 0, NULL, &map);
 	Path* end = new Path(xDefault / 30, yDefault / 30, 0, NULL);
 	NEXT_MOVE_X = NONE;
 	NEXT_MOVE_Y = NONE;
+	chaseCounter = 0;
+
 	if (!isGoingHome) {
 		isGoingHome = true;
-		path = start->findPath(end);
-		counter = 1;
+		backHomePath = start->findPath(end);
+		backHomePathCounter = 1;
 	}
 	if (x == xDefault && y == yDefault) {
 		isGoingHome = false;
@@ -277,17 +351,17 @@ void Ghost::backToHome() {
 		return;
 	}
 
-	if (path.size() == 1) {
-		counter = 0;
+	if (backHomePath.size() == 1) {
+		backHomePathCounter = 0;
 	}
 
-	int nextX = path[counter][0] * 30;
-	int nextY = path[counter][1] * 30;
+	int nextX = backHomePath[backHomePathCounter][0] * 30;
+	int nextY = backHomePath[backHomePathCounter][1] * 30;
 
 	if (x == nextX && y == nextY) {
-		counter++;
-		nextX = path[counter][0] * 30;
-		nextY = path[counter][1] * 30;
+		backHomePathCounter++;
+		nextX = backHomePath[backHomePathCounter][0] * 30;
+		nextY = backHomePath[backHomePathCounter][1] * 30;
 	}
 
 	if (nextY - y < 0) {
@@ -333,6 +407,7 @@ bool Ghost::isWall() {
 		for (unsigned int i = 0; i < ghost.size(); i++) {
 			if (ghost[i]->MODE != DEAD_MODE && !ghost[i]->isInHome()) {
 				if (checkCollision(ghost[i]->getX(), ghost[i]->getY())) {
+					chaseCounter = 0;
 					return true;
 				}
 			}

@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef __MONSTER_H
-#define __MONSTER_H
+#ifndef __GHOST_H
+#define __GHOST_H
 
 #include <vector>
 #include "Texture.h"
@@ -38,20 +38,21 @@ public:
 	int getX() { return x; };
 	int getY() { return y; };
 	void render(int frame);
+	void chasePacman();
 	Pacman* pacman;
 	int MODE;
 private:
 	std::vector<Ghost*> ghost;
-	int x, y, xDefault, yDefault, frameTime;
+	int x, y, xDefault, yDefault, frameTime, chaseFrame;
 	int vel;
 	int NEXT_MOVE_X, NEXT_MOVE_Y, PRIORITY;
 	int DIRECTION;
 	bool isGoingHome;
-	int counter;
+	int backHomePathCounter, chaseCounter;
 	std::string filePath;
 	LTexture ghostTexture;
 	SDL_Rect ghostClip[8];
 	std::vector<std::vector<std::string>> map;
-	std::vector<std::vector<int>> path;
+	std::vector<std::vector<int>> backHomePath, chasePath;
 };
 #endif

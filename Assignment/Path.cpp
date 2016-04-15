@@ -1,12 +1,13 @@
 #include "Path.h"
 #include <cmath>
 
-Path::Path(int xPos, int yPos, int gCost, Path* parentPath, std::vector<std::vector<std::string>>* _map) {
+Path::Path(int xPos, int yPos, int gCost, Path* parentPath, vector<vector<string>>* _map) {
 	x = xPos;
 	y = yPos;
 	g = gCost;
 	parent = parentPath;
 	map = _map;
+	ghost = {};
 }
 
 int Path::getF(Path* end) {
@@ -16,6 +17,11 @@ int Path::getF(Path* end) {
 bool Path::isPath(Path* path) {
 	for (unsigned int i = 0; i < closed.size(); i++) {
 		if (closed[i]->x == path->x && closed[i]->y == path->y) {
+			return false;
+		}
+	}
+	for (unsigned int i = 0; i < ghost.size(); i++) {
+		if (path->x == ghost[i][0] / 30 && path->y == ghost[i][1] / 30) {
 			return false;
 		}
 	}
