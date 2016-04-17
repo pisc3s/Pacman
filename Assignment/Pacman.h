@@ -26,6 +26,9 @@ public:
 	std::string getScore();
 	bool isPowerUp() { return POWERUP; };
 	void setPowerUp(bool b) { POWERUP = b; };
+	void reset();
+	bool started;
+	int life;
 private:
 	int x, y;
 	enum Direction;

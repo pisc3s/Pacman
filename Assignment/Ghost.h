@@ -40,6 +40,7 @@ public:
 	int getY() { return y; };
 	void render(int frame);
 	void chasePacman();
+	void reset();
 	Pacman* pacman;
 	int MODE;
 private:

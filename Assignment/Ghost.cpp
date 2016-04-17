@@ -4,14 +4,9 @@
 
 Ghost::Ghost() {
 	vel = 1;
-	DIRECTION = GHOST_UP;
-	frameTime = 0;
-	chaseFrame = 0;
-	NEXT_MOVE_X = NONE;
-	NEXT_MOVE_Y = NONE;
 	pacman = NULL;
-	isGoingHome = false;
-	canReverse = false;
+	filePath = "";
+	reset();
 }
 
 bool Ghost::init(int priority, int xPos, int yPos, std::vector<std::vector<std::string>> _map, std::string file) {
@@ -76,6 +71,21 @@ bool Ghost::init(int priority, int xPos, int yPos, std::vector<std::vector<std::
 	ghostClip[7].h = 18;
 	
 	return setMode(NORMAL_MODE);
+}
+
+void Ghost::reset() {
+	x = xDefault;
+	y = yDefault;
+	DIRECTION = GHOST_UP;
+	frameTime = 60;
+	chaseFrame = 0;
+	NEXT_MOVE_X = NONE;
+	NEXT_MOVE_Y = NONE;
+	isGoingHome = false;
+	canReverse = false;
+	if (filePath.size() != 0) {
+		setMode(NORMAL_MODE);
+	}
 }
 
 bool Ghost::setMode(int mode) {
@@ -452,9 +462,11 @@ void Ghost::isPacmanCollide() {
 		}
 		else if (MODE != DEAD_MODE) {
 			Mix_PlayChannel(PRIORITY, sound_pacman_die, 0);
-			setMode(DEAD_MODE);
-			backToHome();
-			//pacman->setPosition(270, 330);
+			pacman->life--;
+			pacman->reset();
+			reset();
+			ghost[0]->reset();
+			ghost[1]->reset();
 		}
 	}
 }

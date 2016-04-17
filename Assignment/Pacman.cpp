@@ -7,17 +7,12 @@ enum Pacman::Direction {
 
 Pacman::Pacman() {
 	score = 0;
-	x = 9 * 30;
-	y = 11 * 30;
 	VEL = 1;
-	angle = 0;
-	flip = SDL_FLIP_NONE;
-	DIRECTION = RIGHT;
-	NEXT_DIRECTION = RIGHT;
-	POWERUP = false;
+	life = 3;
 	map = NULL;
 	sound_food = NULL;
 	sound_powerup = NULL;
+	reset();
 }
 
 bool Pacman::init(std::vector<std::vector<std::string>>* _map) {
@@ -78,8 +73,21 @@ bool Pacman::init(std::vector<std::vector<std::string>>* _map) {
 	return true;
 }
 
+void Pacman::reset() {
+	x = 9 * 30;
+	y = 11 * 30;
+	angle = 0;
+	flip = SDL_FLIP_NONE;
+	DIRECTION = RIGHT;
+	NEXT_DIRECTION = RIGHT;
+	POWERUP = false;
+	started = false;
+}
+
 void Pacman::render(int frame) {
-	move();
+	if (started) {
+		move();
+	}
 	pacmanTexture.render(x, y, 30, 30, &pacmanClip[frame], angle, NULL, flip);
 }
 
@@ -89,21 +97,25 @@ void Pacman::handleEvent(SDL_Event e) {
 		case SDLK_UP:
 		case SDLK_w:
 			NEXT_DIRECTION = UP;
+			started = true;
 			break;
 
 		case SDLK_RIGHT:
 		case SDLK_d:
 			NEXT_DIRECTION = RIGHT;
+			started = true;
 			break;
 
 		case SDLK_DOWN:
 		case SDLK_s:
 			NEXT_DIRECTION = DOWN;
+			started = true;
 			break;
 
 		case SDLK_LEFT:
 		case SDLK_a:
 			NEXT_DIRECTION = LEFT;
+			started = true;
 			break;
 		}
 	}

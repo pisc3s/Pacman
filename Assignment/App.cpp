@@ -3,6 +3,8 @@
 #include <SDL_mixer.h>
 #include <SDL_ttf.h>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <cmath>
 #include <string>
 #include <vector>
@@ -32,6 +34,8 @@ Ghost pinkGhost;
 int pacmanFrame = 0;
 int ghostFrame = 0;
 int powerUpFrameTime = 0;
+bool gameOver = false;
+vector<string> highscore;
 
 vector<vector<string>> map = {
 	{ "X","X","X","X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X" },
@@ -45,7 +49,7 @@ vector<vector<string>> map = {
 	{ "X","X","X","X", "o", "X", "o", "X", "X", " ", "X", "X", "o", "X", "o", "X", "X", "X", "X" },
 	{ "o","o","o","o", "o", "o", "o", "X", " ", " ", " ", "X", "o", "o", "o", "o", "o", "o", "o" },
 	{ "X","X","X","X", "o", "X", "o", "X", "X", "X", "X", "X", "o", "X", "o", "X", "X", "X", "X" },
-	{ " "," "," ","X", "o", "X", "o", "o", "o", "o", "o", "o", "o", "X", "o", "X", " ", " ", " " },
+	{ " "," "," ","X", "o", "X", "o", "o", "o", " ", "o", "o", "o", "X", "o", "X", " ", " ", " " },
 	{ "X","X","X","X", "o", "X", "o", "X", "X", "X", "X", "X", "o", "X", "o", "X", "X", "X", "X" },
 	{ "X","o","o","o", "o", "o", "o", "o", "o", "X", "o", "o", "o", "o", "o", "o", "o", "o", "X" },
 	{ "X","o","X","X", "o", "X", "X", "X", "o", "X", "o", "X", "X", "X", "o", "X", "X", "o", "X" },
@@ -57,36 +61,14 @@ vector<vector<string>> map = {
 	{ "X","X","X","X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X" }
 };
 
-//vector<vector<string>> map = {
-//	{ "X","X","X","X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X" },
-//	{ "X","o","o","o", "o", "o", "o", "o", "o", "X", "o", "o", "o", "o", "o", "o", "o", "o", "X" },
-//	{ "X","p","X","X", "o", "X", "X", "X", "o", "X", "o", "X", "X", "X", "o", "X", "X", "p", "X" },
-//	{ "X","o","o","o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "X" },
-//	{ "X","o","X","X", "o", "X", "o", "X", "X", "X", "X", "X", "o", "X", "o", "X", "X", "o", "X" },
-//	{ "X","o","o","o", "o", "X", "o", "o", "o", "X", "o", "o", "o", "X", "o", "o", "o", "o", "X" },
-//	{ "X","X","X","X", "o", "X", "X", "X", "X", "X", "X", "X", "X", "X", "o", "X", "X", "X", "X" },
-//	{ " "," "," ","X", "o", "X", "o", "o", "o", "o", "o", "o", "o", "X", "o", "X", " ", " ", " " },
-//	{ "X","X","X","X", "o", "X", "o", "X", "X", " ", "X", "X", "o", "X", "o", "X", "X", "X", "X" },
-//	{ "o","o","o","o", "o", "X", "o", "X", " ", " ", " ", "X", "o", "X", "o", "o", "o", "o", "o" },
-//	{ "X","X","X","X", "o", "X", "o", "X", "X", "X", "X", "X", "o", "X", "o", "X", "X", "X", "X" },
-//	{ " "," "," ","X", "o", "X", "o", "o", "o", "o", "o", "o", "o", "X", "o", "X", " ", " ", " " },
-//	{ "X","X","X","X", "o", "X", "X", "X", "X", "X", "X", "X", "X", "X", "o", "X", "X", "X", "X" },
-//	{ "X","o","o","o", "o", "o", "o", "o", "o", "X", "o", "o", "o", "o", "o", "o", "o", "o", "X" },
-//	{ "X","o","X","X", "o", "X", "X", "X", "o", "X", "o", "X", "X", "X", "o", "X", "X", "o", "X" },
-//	{ "X","p","o","X", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "X", "o", "p", "X" },
-//	{ "X","X","o","X", "o", "X", "o", "X", "X", "X", "X", "X", "o", "X", "o", "X", "o", "X", "X" },
-//	{ "X","o","o","o", "o", "X", "o", "o", "o", "X", "o", "o", "o", "X", "o", "o", "o", "o", "X" },
-//	{ "X","o","X","X", "X", "X", "X", "X", "o", "X", "o", "X", "X", "X", "X", "X", "X", "o", "X" },
-//	{ "X","o","o","o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "X" },
-//	{ "X","X","X","X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X" }
-//};
-
 bool init();
 bool loadMedia();
 void close();
 bool gameSetUp();
 void handleFrame();
 void renderMap();
+void getLeaderboard();
+void showLeaderboard();
 
 int main(int argc, char* args[]) {
 	bool quit = false;
@@ -105,8 +87,13 @@ int main(int argc, char* args[]) {
 			pacman.handleEvent(e);					
 		}
 
-		handleFrame();
-		renderMap();
+		if (!gameOver) {
+			handleFrame();
+			renderMap();
+		}
+		else {
+			showLeaderboard();
+		}
 	}
 
 	close();
@@ -135,11 +122,9 @@ bool gameSetUp() {
 	blueGhost.addGhost(&redGhost);
 	blueGhost.addGhost(&pinkGhost);
 
-	redGhost.setFrameTime(90);
+Mix_PlayMusic(bgm, -1);
 
-	Mix_PlayMusic(bgm, -1);
-
-	return true;
+return true;
 }
 
 void handleFrame() {
@@ -204,20 +189,59 @@ void renderMap() {
 	}
 	scoreboard.render(SCREEN_WIDTH - (scoreboard.getWidth() + 20), 0);
 
-	life.render(30, 0, 30, 30);
-	life.render(60, 0, 30, 30);
-	life.render(90, 0, 30, 30);
-
 	pacman.render(pacmanFrame / 6);
 	redGhost.render(ghostFrame);
 	pinkGhost.render(ghostFrame);
 	blueGhost.render(ghostFrame);
+
+	vector<int> lifePos = { 30,60,90 };
+	for (int i = 1; i <= pacman.life; i++) {
+		life.render(lifePos[i - 1], 0, 30, 30);
+	}
+
+	if (pacman.life == 0) {
+		gameOver = true;
+		getLeaderboard();
+	}
 
 	if (pacman.isPowerUp()) {
 		powerUpFrameTime = 540;
 	}
 
 	SDL_RenderPresent(gRenderer);
+}
+
+void getLeaderboard() {
+	highscore.clear();
+	ofstream output;
+	output.open("leaderboard.txt", fstream::app);
+	if (output) {
+		output << pacman.getScore() << endl;
+	} else {
+		cout << "File Error!" << endl;
+	}
+	output.close();
+	output.clear();
+	ifstream input;
+	input.open("leaderboard.txt");
+
+	while (true) {
+		string temp;
+		input >> temp;
+		if (input.eof()) break;
+		highscore.push_back(temp);
+	}
+	input.close();
+	input.clear();
+}
+
+void showLeaderboard(){
+	std::ostringstream boardText;
+	boardText << "High Score : \n";
+	for (unsigned int i = 0; i < highscore.size(); i++) {
+		boardText << (i + 1) << ". " << highscore[i] << endl;
+	}
+	cout << boardText.str();
 }
 
 bool init() {
