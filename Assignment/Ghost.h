@@ -4,6 +4,7 @@
 #define __GHOST_H
 
 #include <vector>
+#include <SDL_mixer.h>
 #include "Texture.h"
 #include "Pacman.h"
 #include "Path.h"
@@ -32,7 +33,7 @@ public:
 	void move();
 	bool isInHome();
 	bool isWall();
-	bool isPacmanCollide();
+	void isPacmanCollide();
 	bool checkCollision(int wallX, int wallY, int w = 30, int h = 30);
 	int getOpposite();
 	int getX() { return x; };
@@ -54,5 +55,7 @@ private:
 	SDL_Rect ghostClip[8];
 	std::vector<std::vector<std::string>> map;
 	std::vector<std::vector<int>> backHomePath, chasePath;
+	Mix_Chunk* sound_pacman_die = NULL;
+	Mix_Chunk* sound_ghost_die = NULL;
 };
 #endif

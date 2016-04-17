@@ -20,8 +20,6 @@ SDL_Renderer* gRenderer = NULL;
 TTF_Font* font = NULL;
 
 Mix_Music* bgm = NULL;
-Mix_Chunk* sound_pacman_die = NULL;
-Mix_Chunk* sound_ghost_die = NULL;
 
 LTexture scoreboard;
 LTexture wall;
@@ -86,6 +84,7 @@ vector<vector<string>> map = {
 bool init();
 bool loadMedia();
 void close();
+bool gameSetUp();
 void handleFrame();
 void renderMap();
 
@@ -93,14 +92,36 @@ int main(int argc, char* args[]) {
 	bool quit = false;
 	SDL_Event e;
 
+	if (!gameSetUp()) {
+		return 0;
+	}
+
+	while (!quit) {
+		while (SDL_PollEvent(&e) != 0) {
+			if (e.type == SDL_QUIT || (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)) {
+				quit = true;
+			}
+
+			pacman.handleEvent(e);					
+		}
+
+		handleFrame();
+		renderMap();
+	}
+
+	close();
+	return 0;
+}
+
+bool gameSetUp() {
 	if (!init()) {
 		cout << "Failed to initialize!\n";
-		return 0;
+		return false;
 	}
 
 	if (!loadMedia()) {
 		cout << "Failed to load media!\n";
-		return 0;
+		return false;
 	}
 
 	redGhost.pacman = &pacman;
@@ -118,83 +139,7 @@ int main(int argc, char* args[]) {
 
 	Mix_PlayMusic(bgm, -1);
 
-	while (!quit) {
-		while (SDL_PollEvent(&e) != 0) {
-			if (e.type == SDL_QUIT || (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)) {
-				quit = true;
-			}
-
-			pacman.handleEvent(e);					
-		}
-
-		handleFrame();
-		renderMap();
-
-		pacman.render(pacmanFrame / 6);
-
-		if (powerUpFrameTime > 1 && powerUpFrameTime <= 180) {
-			redGhost.render(ghostFrame / 15);
-			pinkGhost.render(ghostFrame / 15);
-			blueGhost.render(ghostFrame / 15);
-		}
-		else {
-			redGhost.render(ghostFrame / 30);
-			pinkGhost.render(ghostFrame / 30);
-			blueGhost.render(ghostFrame / 30);
-		}
-
-		if (pacman.isPowerUp()) {
-			powerUpFrameTime = 540;
-		}
-
-		if (redGhost.isPacmanCollide()) {
-			if (redGhost.MODE == WEAKEN_MODE || redGhost.MODE == WEAKEN_MODE_ENDING) {
-				Mix_PlayChannel(1, sound_ghost_die, 0);
-				pacman.addScore(1000);
-				redGhost.setMode(DEAD_MODE);
-				redGhost.backToHome();
-			}
-			else if (redGhost.MODE != DEAD_MODE) {
-				Mix_PlayChannel(1, sound_pacman_die, 0);
-				redGhost.setMode(DEAD_MODE);
-				redGhost.backToHome();
-				//pacman.setPosition(270, 330);
-			}
-		}
-		if (pinkGhost.isPacmanCollide()) {
-			if (pinkGhost.MODE == WEAKEN_MODE || pinkGhost.MODE == WEAKEN_MODE_ENDING) {
-				Mix_PlayChannel(2, sound_ghost_die, 0);
-				pacman.addScore(1000);
-				pinkGhost.setMode(DEAD_MODE);
-				pinkGhost.backToHome();
-			}
-			else if (pinkGhost.MODE != DEAD_MODE) {
-				Mix_PlayChannel(2, sound_pacman_die, 0);
-				pinkGhost.setMode(DEAD_MODE);
-				pinkGhost.backToHome();
-				//pacman.setPosition(270, 330);
-			}
-		}
-		if (blueGhost.isPacmanCollide()) {
-			if (blueGhost.MODE == WEAKEN_MODE || blueGhost.MODE == WEAKEN_MODE_ENDING) {
-				Mix_PlayChannel(3, sound_ghost_die, 0);
-				pacman.addScore(1000);
-				blueGhost.setMode(DEAD_MODE);
-				blueGhost.backToHome();
-			}
-			else if(blueGhost.MODE != DEAD_MODE) {
-				Mix_PlayChannel(3, sound_pacman_die, 0);
-				blueGhost.setMode(DEAD_MODE);
-				blueGhost.backToHome();
-				//pacman.setPosition(270, 330);
-			}
-		}
-
-		SDL_RenderPresent(gRenderer);
-	}
-
-	close();
-	return 0;
+	return true;
 }
 
 void handleFrame() {
@@ -203,6 +148,11 @@ void handleFrame() {
 			redGhost.setMode(WEAKEN_MODE);
 			pinkGhost.setMode(WEAKEN_MODE);
 			blueGhost.setMode(WEAKEN_MODE);
+		}
+		else if (powerUpFrameTime == 180) {
+			redGhost.setMode(WEAKEN_MODE_ENDING);
+			pinkGhost.setMode(WEAKEN_MODE_ENDING);
+			blueGhost.setMode(WEAKEN_MODE_ENDING);
 		}
 		else if (powerUpFrameTime == 1) {
 			redGhost.setMode(NORMAL_MODE);
@@ -219,7 +169,7 @@ void handleFrame() {
 		pacmanFrame++;
 	}
 
-	if (ghostFrame == 2 * 30 - 1) {
+	if (ghostFrame == 59) {
 		ghostFrame = 0;
 	}
 	else {
@@ -257,6 +207,17 @@ void renderMap() {
 	life.render(30, 0, 30, 30);
 	life.render(60, 0, 30, 30);
 	life.render(90, 0, 30, 30);
+
+	pacman.render(pacmanFrame / 6);
+	redGhost.render(ghostFrame);
+	pinkGhost.render(ghostFrame);
+	blueGhost.render(ghostFrame);
+
+	if (pacman.isPowerUp()) {
+		powerUpFrameTime = 540;
+	}
+
+	SDL_RenderPresent(gRenderer);
 }
 
 bool init() {
@@ -323,18 +284,6 @@ bool loadMedia() {
 		return false;
 	}
 
-	sound_pacman_die = Mix_LoadWAV("sound_pacman_die.mp3");
-	if (sound_pacman_die == NULL) {
-		cout << "Failed to load pacman die sound effect! SDL_mixer Error: " << Mix_GetError() << endl;
-		return false;
-	}
-
-	sound_ghost_die = Mix_LoadWAV("sound_ghost_die.mp3");
-	if (sound_ghost_die == NULL) {
-		cout << "Failed to load ghost die sound effect! SDL_mixer Error: " << Mix_GetError() << endl;
-		return false;
-	}
-
 	font = TTF_OpenFont("PoiretOne.ttf", 25);
 	if (font == NULL) {
 		cout << "Failed to load true type font! SDL_ttf Error: " << TTF_GetError() << endl;
@@ -355,11 +304,6 @@ void close() {
 	redGhost.free();
 	pinkGhost.free();
 	blueGhost.free();
-
-	Mix_FreeChunk(sound_pacman_die);
-	Mix_FreeChunk(sound_ghost_die);
-	sound_pacman_die = NULL;
-	sound_ghost_die = NULL;
 
 	Mix_FreeMusic(bgm);
 	bgm = NULL;

@@ -23,6 +23,18 @@ bool Ghost::init(int priority, int xPos, int yPos, std::vector<std::vector<std::
 	map = _map;
 	filePath = file;
 
+	sound_pacman_die = Mix_LoadWAV("sound_pacman_die.mp3");
+	if (sound_pacman_die == NULL) {
+		cout << "Failed to load pacman die sound effect! SDL_mixer Error: " << Mix_GetError() << endl;
+		return false;
+	}
+
+	sound_ghost_die = Mix_LoadWAV("sound_ghost_die.mp3");
+	if (sound_ghost_die == NULL) {
+		cout << "Failed to load ghost die sound effect! SDL_mixer Error: " << Mix_GetError() << endl;
+		return false;
+	}
+
 	ghostClip[0].x = 0;
 	ghostClip[0].y = 0;
 	ghostClip[0].w = 20;
@@ -74,7 +86,7 @@ bool Ghost::setMode(int mode) {
 		}
 		MODE = NORMAL_MODE;
 	}
-	else if (mode == WEAKEN_MODE) {
+	else if (mode == WEAKEN_MODE && !isInHome()) {
 		if (!ghostTexture.loadFromFile("weakenghost.png")) {
 			std::cout << "Failed to load ghost weaken texture!\n";
 			return false;
@@ -82,7 +94,7 @@ bool Ghost::setMode(int mode) {
 		MODE = WEAKEN_MODE;
 		canReverse = true;
 	}
-	else if (mode == WEAKEN_MODE_ENDING) {
+	else if (mode == WEAKEN_MODE_ENDING && MODE != NORMAL_MODE) {
 		MODE = WEAKEN_MODE_ENDING;
 	}
 	else if (mode == DEAD_MODE) {
@@ -141,17 +153,19 @@ void Ghost::render(int frame) {
 	}
 	
 	if (MODE == NORMAL_MODE) {
-		ghostTexture.render(x, y, 30, 30, &ghostClip[frame + DIRECTION]);
+		ghostTexture.render(x, y, 30, 30, &ghostClip[(frame / 30) + DIRECTION]);
 	}
 	else if(MODE == WEAKEN_MODE) {
-		ghostTexture.render(x, y, 30, 30, &ghostClip[frame]);
+		ghostTexture.render(x, y, 30, 30, &ghostClip[frame / 30]);
 	}
 	else if (MODE == WEAKEN_MODE_ENDING) {
-		ghostTexture.render(x, y, 30, 30, &ghostClip[4 - (frame + 1)]);
+		ghostTexture.render(x, y, 30, 30, &ghostClip[4 - ((frame / 15) + 1)]);
 	}
 	else if (MODE == DEAD_MODE) {
 		ghostTexture.render(x, y, 30, 30, &ghostClip[DIRECTION / 2]);
 	}
+
+	isPacmanCollide();
 }
 
 void Ghost::move() {
@@ -426,8 +440,23 @@ bool Ghost::isWall() {
 	return false;
 }
 
-bool Ghost::isPacmanCollide() {
-	return checkCollision(pacman->getX() + 7, pacman->getY() + 7, 16, 16);
+void Ghost::isPacmanCollide() {
+	bool isCollide = checkCollision(pacman->getX() + 7, pacman->getY() + 7, 16, 16);
+
+	if (isCollide) {
+		if (MODE == WEAKEN_MODE || MODE == WEAKEN_MODE_ENDING) {
+			Mix_PlayChannel(PRIORITY, sound_ghost_die, 0);
+			pacman->addScore(1000);
+			setMode(DEAD_MODE);
+			backToHome();
+		}
+		else if (MODE != DEAD_MODE) {
+			Mix_PlayChannel(PRIORITY, sound_pacman_die, 0);
+			setMode(DEAD_MODE);
+			backToHome();
+			//pacman->setPosition(270, 330);
+		}
+	}
 }
 
 bool Ghost::checkCollision(int wallX, int wallY, int w, int h) {
@@ -477,4 +506,8 @@ Ghost::~Ghost() {
 
 void Ghost::free() {
 	ghostTexture.free();
+	Mix_FreeChunk(sound_pacman_die);
+	Mix_FreeChunk(sound_ghost_die);
+	sound_pacman_die = NULL;
+	sound_ghost_die = NULL;
 }
