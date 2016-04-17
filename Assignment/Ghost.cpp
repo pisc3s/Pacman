@@ -11,6 +11,7 @@ Ghost::Ghost() {
 	NEXT_MOVE_Y = NONE;
 	pacman = NULL;
 	isGoingHome = false;
+	canReverse = false;
 }
 
 bool Ghost::init(int priority, int xPos, int yPos, std::vector<std::vector<std::string>> _map, std::string file) {
@@ -79,6 +80,7 @@ bool Ghost::setMode(int mode) {
 			return false;
 		}
 		MODE = WEAKEN_MODE;
+		canReverse = true;
 	}
 	else if (mode == WEAKEN_MODE_ENDING) {
 		MODE = WEAKEN_MODE_ENDING;
@@ -132,7 +134,9 @@ void Ghost::render(int frame) {
 		}
 		move();
 	} else {
-		chasePacman();
+		if (MODE != WEAKEN_MODE && MODE != WEAKEN_MODE_ENDING) {
+			chasePacman();
+		}
 		move();
 	}
 	
@@ -232,6 +236,11 @@ void Ghost::move() {
 		}
 	}
 
+	if (canReverse) {
+		DIRECTION = getOpposite();
+		canReverse = false;
+	}
+
 	switch (DIRECTION) {
 	case GHOST_UP:
 		y -= vel;
@@ -295,7 +304,7 @@ void Ghost::chasePacman() {
 
 	if (x == nextX && y == nextY) {
 		chaseCounter++;
-		if (chaseCounter >= chasePath.size()) {
+		if ((unsigned int) chaseCounter >= chasePath.size()) {
 			chaseFrame = 0;
 			nextX = NONE;
 			nextY = NONE;

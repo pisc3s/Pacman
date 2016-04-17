@@ -47,7 +47,7 @@ private:
 	int vel;
 	int NEXT_MOVE_X, NEXT_MOVE_Y, PRIORITY;
 	int DIRECTION;
-	bool isGoingHome;
+	bool isGoingHome, canReverse;
 	int backHomePathCounter, chaseCounter;
 	std::string filePath;
 	LTexture ghostTexture;

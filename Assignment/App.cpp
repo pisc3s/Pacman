@@ -26,6 +26,7 @@ Mix_Chunk* sound_ghost_die = NULL;
 LTexture scoreboard;
 LTexture wall;
 LTexture powerup;
+LTexture life;
 Pacman pacman;
 Ghost redGhost;
 Ghost blueGhost;
@@ -227,7 +228,7 @@ void handleFrame() {
 }
 
 void renderMap() {
-	SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
+	SDL_SetRenderDrawColor(gRenderer, 242, 252, 255, 255);
 	SDL_RenderClear(gRenderer);
 
 	for (unsigned int y = 0; y < map.size(); y++) {
@@ -243,7 +244,6 @@ void renderMap() {
 				SDL_RenderFillRect(gRenderer, &fillRect);
 			}
 			if (map[y][x] == "p") {
-				SDL_SetRenderDrawColor(gRenderer, 255, 98, 0, 255);
 				powerup.render(X, Y, 30, 30);
 			}
 		}
@@ -253,6 +253,10 @@ void renderMap() {
 		cout << "Unable to render time texture!\n";
 	}
 	scoreboard.render(SCREEN_WIDTH - (scoreboard.getWidth() + 20), 0);
+
+	life.render(30, 0, 30, 30);
+	life.render(60, 0, 30, 30);
+	life.render(90, 0, 30, 30);
 }
 
 bool init() {
@@ -308,6 +312,11 @@ bool loadMedia() {
 		return false;
 	}
 
+	if (!life.loadFromFile("life.png")) {
+		cout << "Failed to load life texture!\n";
+		return false;
+	}
+
 	bgm = Mix_LoadMUS("bgm.mp3");
 	if (bgm == NULL) {
 		cout << "Failed to load background music! SDL_mixer Error: " << Mix_GetError() << endl;
@@ -340,6 +349,7 @@ void close() {
 	pacman.free();
 	wall.free();
 	scoreboard.free();
+	life.free();
 	powerup.free();
 
 	redGhost.free();
