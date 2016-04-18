@@ -126,40 +126,45 @@ void Ghost::addGhost(Ghost* _ghost) {
 }
 
 void Ghost::render(int frame) {
-	if (isGoingHome) {
-		backToHome();
-		move();
-	} else if (frameTime > 0) {
-		frameTime--;
-	} else if (isInHome()) {
-		bool backHome = false;
-		int xDistance = 270 - x;
+	if (pacman->life != 0) {
+		if (isGoingHome) {
+			backToHome();
+			move();
+		}
+		else if (frameTime > 0) {
+			frameTime--;
+		}
+		else if (isInHome()) {
+			bool backHome = false;
+			int xDistance = 270 - x;
 
-		for (unsigned int i = 0; i < ghost.size(); i++) {
-			if (ghost[i]->isInHome() && (getPriority() > ghost[i]->getPriority())) {
-				backToHome();
-				backHome = true;
-				break;
+			for (unsigned int i = 0; i < ghost.size(); i++) {
+				if (ghost[i]->isInHome() && (getPriority() > ghost[i]->getPriority())) {
+					backToHome();
+					backHome = true;
+					break;
+				}
 			}
-		}
 
-		if (!backHome) {
-			if (xDistance > 0) {
-				NEXT_MOVE_X = GHOST_RIGHT;
+			if (!backHome) {
+				if (xDistance > 0) {
+					NEXT_MOVE_X = GHOST_RIGHT;
+				}
+				else if (xDistance < 0) {
+					NEXT_MOVE_X = GHOST_LEFT;
+				}
+				else if (xDistance == 0) {
+					NEXT_MOVE_Y = GHOST_UP;
+				}
 			}
-			else if (xDistance < 0) {
-				NEXT_MOVE_X = GHOST_LEFT;
-			}
-			else if (xDistance == 0) {
-				NEXT_MOVE_Y = GHOST_UP;
-			}
+			move();
 		}
-		move();
-	} else {
-		if (MODE != WEAKEN_MODE && MODE != WEAKEN_MODE_ENDING) {
-			chasePacman();
+		else {
+			if (MODE != WEAKEN_MODE && MODE != WEAKEN_MODE_ENDING) {
+				chasePacman();
+			}
+			move();
 		}
-		move();
 	}
 	
 	if (MODE == NORMAL_MODE) {

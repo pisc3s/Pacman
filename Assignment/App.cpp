@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 #include <cmath>
 #include <string>
 #include <vector>
@@ -27,6 +28,8 @@ LTexture scoreboard;
 LTexture wall;
 LTexture powerup;
 LTexture life;
+LTexture highScoreBoard;
+LTexture boardText[4];
 Pacman pacman;
 Ghost redGhost;
 Ghost blueGhost;
@@ -34,8 +37,11 @@ Ghost pinkGhost;
 int pacmanFrame = 0;
 int ghostFrame = 0;
 int powerUpFrameTime = 0;
-bool gameOver = false;
-vector<string> highscore;
+bool gameOver = false, getScore = false;
+int alpha = 0;
+vector<int> highscore;
+vector<string> outputScore;
+std::ostringstream fileText;
 
 vector<vector<string>> map = {
 	{ "X","X","X","X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X" },
@@ -69,6 +75,7 @@ void handleFrame();
 void renderMap();
 void getLeaderboard();
 void showLeaderboard();
+bool descending(int i, int j) { return i > j; }
 
 int main(int argc, char* args[]) {
 	bool quit = false;
@@ -87,11 +94,10 @@ int main(int argc, char* args[]) {
 			pacman.handleEvent(e);					
 		}
 
-		if (!gameOver) {
-			handleFrame();
-			renderMap();
-		}
-		else {
+		handleFrame();
+		renderMap();
+
+		if(gameOver){
 			showLeaderboard();
 		}
 	}
@@ -199,20 +205,21 @@ void renderMap() {
 		life.render(lifePos[i - 1], 0, 30, 30);
 	}
 
-	if (pacman.life == 0) {
-		gameOver = true;
-		getLeaderboard();
-	}
-
 	if (pacman.isPowerUp()) {
 		powerUpFrameTime = 540;
 	}
 
-	SDL_RenderPresent(gRenderer);
+	if (pacman.life == 0) {
+		gameOver = true;
+	}
+	else {
+		SDL_RenderPresent(gRenderer);
+	}
 }
 
 void getLeaderboard() {
 	highscore.clear();
+
 	ofstream output;
 	output.open("leaderboard.txt", fstream::app);
 	if (output) {
@@ -222,26 +229,55 @@ void getLeaderboard() {
 	}
 	output.close();
 	output.clear();
+
 	ifstream input;
 	input.open("leaderboard.txt");
 
 	while (true) {
-		string temp;
+		int temp;
 		input >> temp;
 		if (input.eof()) break;
 		highscore.push_back(temp);
 	}
 	input.close();
 	input.clear();
+
+	sort(highscore.begin(), highscore.end(), descending);
 }
 
 void showLeaderboard(){
-	std::ostringstream boardText;
-	boardText << "High Score : \n";
-	for (unsigned int i = 0; i < highscore.size(); i++) {
-		boardText << (i + 1) << ". " << highscore[i] << endl;
+	if (!getScore) {
+		getLeaderboard();
+		getScore = true;
 	}
-	cout << boardText.str();
+	
+	outputScore.clear();
+	outputScore.push_back("High Score");
+	for (unsigned int i = 0; i < highscore.size(); i++) {
+		fileText << (i + 1) << ". " << highscore[i];
+		outputScore.push_back(fileText.str());
+		fileText.str("");
+	}
+
+	highScoreBoard.setAlpha(alpha);
+	highScoreBoard.render(SCREEN_WIDTH / 2 - 150, SCREEN_HEIGHT / 2 - 250, 300, 500);
+
+	int winnerNumber = min((int) outputScore.size(), 4);
+
+	for (unsigned int i = 0; i < winnerNumber; i++) {
+		if (!boardText[i].loadFromRenderedText(font, outputScore[i], { 0, 0, 0, 255 })) {
+			cout << "Unable to render board text texture!\n";
+		}
+		boardText[i].setAlpha(alpha);
+		boardText[i].render(SCREEN_WIDTH / 2 - 60, SCREEN_HEIGHT / 2 - 140 + (i * 60), boardText[i].getWidth(), boardText[i].getHeight());
+	}
+
+	alpha += 10;
+	if(alpha > SDL_ALPHA_OPAQUE){
+		alpha = 255;
+	}
+
+	SDL_RenderPresent(gRenderer);
 }
 
 bool init() {
@@ -302,6 +338,16 @@ bool loadMedia() {
 		return false;
 	}
 
+	if (!highScoreBoard.loadFromFile("board.png")) {
+		cout << "Failed to load high score board texture!\n";
+		return false;
+	}
+	highScoreBoard.setBlendMode(SDL_BLENDMODE_BLEND);
+	boardText[0].setBlendMode(SDL_BLENDMODE_BLEND);
+	boardText[1].setBlendMode(SDL_BLENDMODE_BLEND);
+	boardText[2].setBlendMode(SDL_BLENDMODE_BLEND);
+	boardText[3].setBlendMode(SDL_BLENDMODE_BLEND);
+
 	bgm = Mix_LoadMUS("bgm.mp3");
 	if (bgm == NULL) {
 		cout << "Failed to load background music! SDL_mixer Error: " << Mix_GetError() << endl;
@@ -324,6 +370,11 @@ void close() {
 	scoreboard.free();
 	life.free();
 	powerup.free();
+	highScoreBoard.free();
+	boardText[0].free();
+	boardText[1].free();
+	boardText[2].free();
+	boardText[3].free();
 
 	redGhost.free();
 	pinkGhost.free();
