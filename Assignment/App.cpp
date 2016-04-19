@@ -21,15 +21,18 @@ const int SCREEN_HEIGHT = 21 * 30;
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 TTF_Font* font = NULL;
+TTF_Font* homeFont = NULL;
+TTF_Font* titleFont = NULL;
 
 Mix_Music* bgm = NULL;
 
+LTexture homeMenu;
 LTexture scoreboard;
 LTexture wall;
 LTexture powerup;
 LTexture life;
 LTexture highScoreBoard;
-LTexture boardText[4];
+LTexture boardText[6];
 Pacman pacman;
 Ghost redGhost;
 Ghost blueGhost;
@@ -37,8 +40,10 @@ Ghost pinkGhost;
 int pacmanFrame = 0;
 int ghostFrame = 0;
 int powerUpFrameTime = 0;
-bool gameOver = false, getScore = false;
-int alpha = 0;
+bool gameFreeze = false, getScore = false, gameStarted = false, startPressed = false;
+bool alphaAdd = false;
+int alpha = 255;
+int blinkAlpha = 255;
 vector<int> highscore;
 vector<string> outputScore;
 std::ostringstream fileText;
@@ -75,6 +80,8 @@ void handleFrame();
 void renderMap();
 void getLeaderboard();
 void showLeaderboard();
+void showHome();
+bool checkWin();
 bool descending(int i, int j) { return i > j; }
 
 int main(int argc, char* args[]) {
@@ -91,13 +98,19 @@ int main(int argc, char* args[]) {
 				quit = true;
 			}
 
-			pacman.handleEvent(e);					
+			pacman.handleEvent(e);
+
+			if (e.key.keysym.sym == SDLK_SPACE && !startPressed) {
+				startPressed = true;
+			}
 		}
 
 		handleFrame();
 		renderMap();
 
-		if(gameOver){
+		if (!gameStarted) {
+			showHome();
+		} else if(pacman.life == 0 || checkWin()){
 			showLeaderboard();
 		}
 	}
@@ -195,10 +208,10 @@ void renderMap() {
 	}
 	scoreboard.render(SCREEN_WIDTH - (scoreboard.getWidth() + 20), 0);
 
-	pacman.render(pacmanFrame / 6);
-	redGhost.render(ghostFrame);
-	pinkGhost.render(ghostFrame);
-	blueGhost.render(ghostFrame);
+	pacman.render(pacmanFrame / 6, gameFreeze);
+	redGhost.render(ghostFrame, gameFreeze);
+	pinkGhost.render(ghostFrame, gameFreeze);
+	blueGhost.render(ghostFrame, gameFreeze);
 
 	vector<int> lifePos = { 30,60,90 };
 	for (int i = 1; i <= pacman.life; i++) {
@@ -209,12 +222,58 @@ void renderMap() {
 		powerUpFrameTime = 540;
 	}
 
-	if (pacman.life == 0) {
-		gameOver = true;
+	if (pacman.life == 0 || checkWin() || !gameStarted) {
+		gameFreeze = true;
 	}
 	else {
 		SDL_RenderPresent(gRenderer);
 	}
+}
+
+void showHome() {
+	if (startPressed) {
+		alpha -= 6;
+		if (alpha < SDL_ALPHA_TRANSPARENT) {
+			alpha = 0;
+			gameStarted = true;
+			gameFreeze = false;
+		}
+		blinkAlpha = alpha;
+	}
+	else {
+		if (alphaAdd) {
+			blinkAlpha += 7;
+		}
+		else {
+			blinkAlpha -= 7;
+		}
+
+		if (blinkAlpha < SDL_ALPHA_TRANSPARENT + 50) {
+			blinkAlpha = 50;
+			alphaAdd = !alphaAdd;
+		}
+		else if (blinkAlpha > SDL_ALPHA_OPAQUE) {
+			blinkAlpha = 255;
+			alphaAdd = !alphaAdd;
+		}
+	}
+
+	homeMenu.setAlpha(alpha);
+	homeMenu.render(0, 0, SCREEN_HEIGHT, SCREEN_HEIGHT);
+
+	if (!boardText[0].loadFromRenderedText(titleFont, "PACMAN", { 255, 243, 219, 255 })) {
+		cout << "Unable to render board text texture!\n";
+	}
+	boardText[0].setAlpha(alpha);
+	boardText[0].render(SCREEN_WIDTH / 2 - (boardText[0].getWidth() / 2), 50);
+
+	if (!boardText[1].loadFromRenderedText(homeFont, "PRESS SPACE BAR TO START", { 43, 28, 0, 255 })) {
+		cout << "Unable to render board text texture!\n";
+	}
+	boardText[1].setAlpha(blinkAlpha);
+	boardText[1].render(SCREEN_WIDTH / 2 - (boardText[1].getWidth() / 2), 530);
+
+	SDL_RenderPresent(gRenderer);
 }
 
 void getLeaderboard() {
@@ -245,7 +304,7 @@ void getLeaderboard() {
 	sort(highscore.begin(), highscore.end(), descending);
 }
 
-void showLeaderboard(){
+void showLeaderboard() {
 	if (!getScore) {
 		getLeaderboard();
 		getScore = true;
@@ -269,8 +328,20 @@ void showLeaderboard(){
 			cout << "Unable to render board text texture!\n";
 		}
 		boardText[i].setAlpha(alpha);
-		boardText[i].render(SCREEN_WIDTH / 2 - 60, SCREEN_HEIGHT / 2 - 140 + (i * 60), boardText[i].getWidth(), boardText[i].getHeight());
+		boardText[i].render(SCREEN_WIDTH / 2 - (boardText[i].getWidth() / 2), SCREEN_HEIGHT / 2 - 170 + (i * 60));
 	}
+
+	if (!boardText[4].loadFromRenderedText(font, "Your Score", { 0, 0, 0, 255 })) {
+		cout << "Unable to render board text texture!\n";
+	}
+	boardText[4].setAlpha(alpha);
+	boardText[4].render(SCREEN_WIDTH / 2 - (boardText[4].getWidth() / 2), SCREEN_HEIGHT / 2 - 170 + 260);
+
+	if (!boardText[5].loadFromRenderedText(font, pacman.getScore(), { 0, 0, 0, 255 })) {
+		cout << "Unable to render board text texture!\n";
+	}
+	boardText[5].setAlpha(alpha);
+	boardText[5].render(SCREEN_WIDTH / 2 - (boardText[5].getWidth() / 2), SCREEN_HEIGHT / 2 - 170 + 320);
 
 	alpha += 10;
 	if(alpha > SDL_ALPHA_OPAQUE){
@@ -278,6 +349,17 @@ void showLeaderboard(){
 	}
 
 	SDL_RenderPresent(gRenderer);
+}
+
+bool checkWin() {
+	for (unsigned int y = 0; y < map.size(); y++) {
+		for (unsigned int x = 0; x < map[y].size(); x++) {
+			if (map[y][x] == "o" || map[y][x] == "p") {
+				return false;
+			}
+		}
+	}
+	return true;
 }
 
 bool init() {
@@ -347,6 +429,14 @@ bool loadMedia() {
 	boardText[1].setBlendMode(SDL_BLENDMODE_BLEND);
 	boardText[2].setBlendMode(SDL_BLENDMODE_BLEND);
 	boardText[3].setBlendMode(SDL_BLENDMODE_BLEND);
+	boardText[4].setBlendMode(SDL_BLENDMODE_BLEND);
+	boardText[5].setBlendMode(SDL_BLENDMODE_BLEND);
+
+	if (!homeMenu.loadFromFile("home_bg.jpg")) {
+		cout << "Failed to load home menu texture!\n";
+		return false;
+	}
+	homeMenu.setBlendMode(SDL_BLENDMODE_BLEND);
 
 	bgm = Mix_LoadMUS("bgm.mp3");
 	if (bgm == NULL) {
@@ -356,6 +446,18 @@ bool loadMedia() {
 
 	font = TTF_OpenFont("PoiretOne.ttf", 25);
 	if (font == NULL) {
+		cout << "Failed to load true type font! SDL_ttf Error: " << TTF_GetError() << endl;
+		return false;
+	}
+
+	homeFont = TTF_OpenFont("home.ttf", 40);
+	if (homeFont == NULL) {
+		cout << "Failed to load true type font! SDL_ttf Error: " << TTF_GetError() << endl;
+		return false;
+	}
+
+	titleFont = TTF_OpenFont("home.ttf", 120);
+	if (titleFont == NULL) {
 		cout << "Failed to load true type font! SDL_ttf Error: " << TTF_GetError() << endl;
 		return false;
 	}
@@ -370,11 +472,14 @@ void close() {
 	scoreboard.free();
 	life.free();
 	powerup.free();
+	homeMenu.free();
 	highScoreBoard.free();
 	boardText[0].free();
 	boardText[1].free();
 	boardText[2].free();
 	boardText[3].free();
+	boardText[4].free();
+	boardText[5].free();
 
 	redGhost.free();
 	pinkGhost.free();
@@ -384,7 +489,11 @@ void close() {
 	bgm = NULL;
 
 	TTF_CloseFont(font);
+	TTF_CloseFont(homeFont);
+	TTF_CloseFont(titleFont);
 	font = NULL;
+	homeFont = NULL;
+	titleFont = NULL;
 
 	SDL_DestroyRenderer(gRenderer);
 	SDL_DestroyWindow(gWindow);

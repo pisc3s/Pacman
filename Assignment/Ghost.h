@@ -38,7 +38,7 @@ public:
 	int getOpposite();
 	int getX() { return x; };
 	int getY() { return y; };
-	void render(int frame);
+	void render(int frame, bool freeze);
 	void chasePacman();
 	void reset();
 	Pacman* pacman;

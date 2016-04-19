@@ -125,8 +125,8 @@ void Ghost::addGhost(Ghost* _ghost) {
 	ghost.push_back(_ghost);
 }
 
-void Ghost::render(int frame) {
-	if (pacman->life != 0) {
+void Ghost::render(int frame, bool freeze) {
+	if (!freeze) {
 		if (isGoingHome) {
 			backToHome();
 			move();

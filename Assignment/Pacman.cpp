@@ -84,8 +84,8 @@ void Pacman::reset() {
 	started = false;
 }
 
-void Pacman::render(int frame) {
-	if (started && life != 0) {
+void Pacman::render(int frame, bool freeze) {
+	if (started && !freeze) {
 		move();
 	}
 	pacmanTexture.render(x, y, 30, 30, &pacmanClip[frame], angle, NULL, flip);

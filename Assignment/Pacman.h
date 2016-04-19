@@ -18,7 +18,7 @@ public:
 	bool isWall();
 	void eat();
 	bool checkCollision(int wallX, int wallY, int w = 30, int h = 30);
-	void render(int frame);
+	void render(int frame, bool freeze);
 	void setPosition(int xPos, int yPos);
 	void addScore(int _score);
 	int getX() { return x; };
