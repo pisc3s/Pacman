@@ -16,41 +16,37 @@ const int GHOST_LEFT = 4;
 const int GHOST_RIGHT = 6;
 const int NORMAL_MODE = 100;
 const int WEAKEN_MODE = 200;
-const int WEAKEN_MODE_ENDING = 300;
+const int WEAKEN_ENDING_MODE = 300;
 const int DEAD_MODE = 400;
 
 class Ghost {
 public:
+	Pacman* pacman;
+
 	Ghost();
 	~Ghost();
 	bool init(int priority, int xPos, int yPos, std::vector<std::vector<std::string>> _map, std::string filePath);
-	void free();
 	void addGhost(Ghost* _ghost);
 	bool setMode(int mode);
-	void setFrameTime(int frame);
-	int getPriority() { return PRIORITY; };
-	void backToHome();
-	void move();
-	bool isInHome();
-	bool isWall();
-	void isPacmanCollide();
-	bool checkCollision(int wallX, int wallY, int w = 30, int h = 30);
-	int getOpposite();
+	bool isAtHome();
 	int getX() { return x; };
 	int getY() { return y; };
+	int getPriority() { return PRIORITY; };
+	int getMode() { return MODE; };
+	void move();
 	void render(int frame, bool freeze);
-	void chasePacman();
 	void reset();
-	Pacman* pacman;
-	int MODE;
+	void free();
 private:
 	std::vector<Ghost*> ghost;
-	int x, y, xDefault, yDefault, frameTime, chaseFrame;
-	int vel;
-	int NEXT_MOVE_X, NEXT_MOVE_Y, PRIORITY;
-	int DIRECTION;
-	bool isGoingHome, canReverse;
+	int x, y;
+	int xDefault, yDefault;
+	int VEL, DIRECTION;
+	int NEXT_MOVE_X, NEXT_MOVE_Y;
+	int PRIORITY, MODE;
+	int frameTime, chaseFrame;
 	int backHomePathCounter, chaseCounter;
+	bool isGoingHome, canReverse;
 	std::string filePath;
 	LTexture ghostTexture;
 	SDL_Rect ghostClip[8];
@@ -58,5 +54,13 @@ private:
 	std::vector<std::vector<int>> backHomePath, chasePath;
 	Mix_Chunk* sound_pacman_die = NULL;
 	Mix_Chunk* sound_ghost_die = NULL;
+
+	void setFrameTime(int frame);
+	void backToHome();
+	void chasePacman();
+	bool isObstacle();
+	void isPacmanCollide();
+	bool checkCollision(int wallX, int wallY, int w = 30, int h = 30);
+	int getOpposite();
 };
 #endif

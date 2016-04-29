@@ -154,9 +154,9 @@ void handleFrame() {
 			blueGhost.setMode(WEAKEN_MODE);
 		}
 		else if (powerUpFrameTime == 180) {
-			redGhost.setMode(WEAKEN_MODE_ENDING);
-			pinkGhost.setMode(WEAKEN_MODE_ENDING);
-			blueGhost.setMode(WEAKEN_MODE_ENDING);
+			redGhost.setMode(WEAKEN_ENDING_MODE);
+			pinkGhost.setMode(WEAKEN_ENDING_MODE);
+			blueGhost.setMode(WEAKEN_ENDING_MODE);
 		}
 		else if (powerUpFrameTime == 1) {
 			redGhost.setMode(NORMAL_MODE);

@@ -3,7 +3,7 @@
 #include <ctime>
 
 Ghost::Ghost() {
-	vel = 1;
+	VEL = 1;
 	pacman = NULL;
 	filePath = "";
 	reset();
@@ -73,21 +73,6 @@ bool Ghost::init(int priority, int xPos, int yPos, std::vector<std::vector<std::
 	return setMode(NORMAL_MODE);
 }
 
-void Ghost::reset() {
-	x = xDefault;
-	y = yDefault;
-	DIRECTION = GHOST_UP;
-	frameTime = 60;
-	chaseFrame = 0;
-	NEXT_MOVE_X = NONE;
-	NEXT_MOVE_Y = NONE;
-	isGoingHome = false;
-	canReverse = false;
-	if (filePath.size() != 0) {
-		setMode(NORMAL_MODE);
-	}
-}
-
 bool Ghost::setMode(int mode) {
 	if (mode == NORMAL_MODE && !isGoingHome) {
 		if (!ghostTexture.loadFromFile(filePath)) {
@@ -96,7 +81,7 @@ bool Ghost::setMode(int mode) {
 		}
 		MODE = NORMAL_MODE;
 	}
-	else if (mode == WEAKEN_MODE && !isInHome()) {
+	else if (mode == WEAKEN_MODE && !isAtHome()) {
 		if (!ghostTexture.loadFromFile("weakenghost.png")) {
 			std::cout << "Failed to load ghost weaken texture!\n";
 			return false;
@@ -104,8 +89,8 @@ bool Ghost::setMode(int mode) {
 		MODE = WEAKEN_MODE;
 		canReverse = true;
 	}
-	else if (mode == WEAKEN_MODE_ENDING && MODE != NORMAL_MODE) {
-		MODE = WEAKEN_MODE_ENDING;
+	else if (mode == WEAKEN_ENDING_MODE && MODE != NORMAL_MODE) {
+		MODE = WEAKEN_ENDING_MODE;
 	}
 	else if (mode == DEAD_MODE) {
 		if (!ghostTexture.loadFromFile("deadghost.png")) {
@@ -134,12 +119,12 @@ void Ghost::render(int frame, bool freeze) {
 		else if (frameTime > 0) {
 			frameTime--;
 		}
-		else if (isInHome()) {
+		else if (isAtHome()) {
 			bool backHome = false;
 			int xDistance = 270 - x;
 
 			for (unsigned int i = 0; i < ghost.size(); i++) {
-				if (ghost[i]->isInHome() && (getPriority() > ghost[i]->getPriority())) {
+				if (ghost[i]->isAtHome() && (getPriority() > ghost[i]->getPriority())) {
 					backToHome();
 					backHome = true;
 					break;
@@ -160,7 +145,7 @@ void Ghost::render(int frame, bool freeze) {
 			move();
 		}
 		else {
-			if (MODE != WEAKEN_MODE && MODE != WEAKEN_MODE_ENDING) {
+			if (MODE != WEAKEN_MODE && MODE != WEAKEN_ENDING_MODE) {
 				chasePacman();
 			}
 			move();
@@ -173,7 +158,7 @@ void Ghost::render(int frame, bool freeze) {
 	else if(MODE == WEAKEN_MODE) {
 		ghostTexture.render(x, y, 30, 30, &ghostClip[frame / 30]);
 	}
-	else if (MODE == WEAKEN_MODE_ENDING) {
+	else if (MODE == WEAKEN_ENDING_MODE) {
 		ghostTexture.render(x, y, 30, 30, &ghostClip[4 - ((frame / 15) + 1)]);
 	}
 	else if (MODE == DEAD_MODE) {
@@ -187,66 +172,66 @@ void Ghost::move() {
 	bool isNextMove = false;
 	switch (NEXT_MOVE_X) {
 	case GHOST_RIGHT:
-		x += vel;
-		if (!isWall()) {
+		x += VEL;
+		if (!isObstacle()) {
 			DIRECTION = NEXT_MOVE_X;
 			isNextMove = true;
 		}
-		x -= vel;
+		x -= VEL;
 		break;
 
 	case GHOST_LEFT:
-		x -= vel;
-		if (!isWall()) {
+		x -= VEL;
+		if (!isObstacle()) {
 			DIRECTION = NEXT_MOVE_X;
 			isNextMove = true;
 		}
-		x += vel;
+		x += VEL;
 		break;		
 	}
 
 	switch(NEXT_MOVE_Y) {
 		case GHOST_UP:
-			y -= vel;
-			if (!isWall()) {
+			y -= VEL;
+			if (!isObstacle()) {
 				DIRECTION = NEXT_MOVE_Y;
 				isNextMove = true;
 			}
-			y += vel;
+			y += VEL;
 			break;
 
 		case GHOST_DOWN:
-			y += vel;
-			if (!isWall()) {
+			y += VEL;
+			if (!isObstacle()) {
 				DIRECTION = NEXT_MOVE_Y;
 				isNextMove = true;
 			}
-			y -= vel;
+			y -= VEL;
 			break;
 	}
 
 	if(!isNextMove){
 		std::vector<int> way;
 
-		y -= vel;
-		if (!isWall()) {
+		y -= VEL;
+		if (!isObstacle()) {
 			way.push_back(GHOST_UP);
 		}
-		y += vel * 2;
-		if (!isWall()) {
+		y += VEL * 2;
+		if (!isObstacle()) {
 			way.push_back(GHOST_DOWN);
 		}
-		y -= vel;
+		y -= VEL;
 
-		x -= vel;
-		if (!isWall()) {
+		x -= VEL;
+		if (!isObstacle()) {
 			way.push_back(GHOST_LEFT);
 		}
-		x += vel * 2;
-		if (!isWall()) {
+		x += VEL * 2;
+		if (!isObstacle()) {
 			way.push_back(GHOST_RIGHT);
 		}
-		x -= vel;
+		x -= VEL;
 
 		if (way.size() == 1) {
 			DIRECTION = way[0];
@@ -272,30 +257,31 @@ void Ghost::move() {
 
 	switch (DIRECTION) {
 	case GHOST_UP:
-		y -= vel;
-		if (isWall()) {
-			y += vel;
+		y -= VEL;
+		if (isObstacle()) {
+			y += VEL;
 		}
 		break;
 	case GHOST_DOWN:
-		y += vel;
-		if (isWall()) {
-			y -= vel;
+		y += VEL;
+		if (isObstacle()) {
+			y -= VEL;
 		}
 		break;
 	case GHOST_LEFT:
-		x -= vel;
-		if (isWall()) {
-			x += vel;
+		x -= VEL;
+		if (isObstacle()) {
+			x += VEL;
 		}
 		break;
 	case GHOST_RIGHT:
-		x += vel;
-		if (isWall()) {
-			x -= vel;
+		x += VEL;
+		if (isObstacle()) {
+			x -= VEL;
 		}
 		break;
 	}
+
 	NEXT_MOVE_X = NONE;
 	NEXT_MOVE_Y = NONE;
 }
@@ -416,14 +402,14 @@ void Ghost::backToHome() {
 	}
 }
 
-bool Ghost::isInHome() {
+bool Ghost::isAtHome() {
 	if (x >= 240 && x <= 300 && y == 270 && MODE != DEAD_MODE) {
 		return true;
 	}
 	return false;
 }
 
-bool Ghost::isWall() {
+bool Ghost::isObstacle() {
 	if (x <= -30 && y == 270) {
 		x = 18 * 30;
 		return false;
@@ -443,7 +429,7 @@ bool Ghost::isWall() {
 	}
 	if (MODE != DEAD_MODE && !isGoingHome) {
 		for (unsigned int i = 0; i < ghost.size(); i++) {
-			if (ghost[i]->MODE != DEAD_MODE && !ghost[i]->isInHome()) {
+			if (ghost[i]->getMode() != DEAD_MODE && !ghost[i]->isAtHome()) {
 				if (checkCollision(ghost[i]->getX(), ghost[i]->getY())) {
 					chaseCounter = 0;
 					return true;
@@ -459,7 +445,7 @@ void Ghost::isPacmanCollide() {
 	bool isCollide = checkCollision(pacman->getX() + 7, pacman->getY() + 7, 16, 16);
 
 	if (isCollide) {
-		if (MODE == WEAKEN_MODE || MODE == WEAKEN_MODE_ENDING) {
+		if (MODE == WEAKEN_MODE || MODE == WEAKEN_ENDING_MODE) {
 			Mix_PlayChannel(PRIORITY, sound_ghost_die, 0);
 			pacman->addScore(1000);
 			setMode(DEAD_MODE);
@@ -515,6 +501,21 @@ int Ghost::getOpposite() {
 		return GHOST_LEFT;
 	}
 	return -1;
+}
+
+void Ghost::reset() {
+	x = xDefault;
+	y = yDefault;
+	DIRECTION = GHOST_UP;
+	frameTime = 60;
+	chaseFrame = 0;
+	NEXT_MOVE_X = NONE;
+	NEXT_MOVE_Y = NONE;
+	isGoingHome = false;
+	canReverse = false;
+	if (filePath.size() != 0) {
+		setMode(NORMAL_MODE);
+	}
 }
 
 Ghost::~Ghost() {

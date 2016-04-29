@@ -73,24 +73,6 @@ bool Pacman::init(std::vector<std::vector<std::string>>* _map) {
 	return true;
 }
 
-void Pacman::reset() {
-	x = 9 * 30;
-	y = 11 * 30;
-	angle = 0;
-	flip = SDL_FLIP_NONE;
-	DIRECTION = RIGHT;
-	NEXT_DIRECTION = RIGHT;
-	POWERUP = false;
-	started = false;
-}
-
-void Pacman::render(int frame, bool freeze) {
-	if (started && !freeze) {
-		move();
-	}
-	pacmanTexture.render(x, y, 30, 30, &pacmanClip[frame], angle, NULL, flip);
-}
-
 void Pacman::handleEvent(SDL_Event e) {
 	if (e.type == SDL_KEYDOWN) {
 		switch (e.key.keysym.sym) {
@@ -128,7 +110,7 @@ void Pacman::move() {
 	switch (NEXT_DIRECTION) {
 	case UP:
 		y -= VEL;
-		if (!isWall()) {
+		if (!isObstacle()) {
 			DIRECTION = NEXT_DIRECTION;
 		}
 		y += VEL;
@@ -136,7 +118,7 @@ void Pacman::move() {
 
 	case RIGHT:
 		x += VEL;
-		if (!isWall()) {
+		if (!isObstacle()) {
 			DIRECTION = NEXT_DIRECTION;
 		}
 		x -= VEL;
@@ -144,7 +126,7 @@ void Pacman::move() {
 
 	case DOWN:
 		y += VEL;
-		if (!isWall()) {
+		if (!isObstacle()) {
 			DIRECTION = NEXT_DIRECTION;
 		}
 		y -= VEL;
@@ -152,7 +134,7 @@ void Pacman::move() {
 
 	case LEFT:
 		x -= VEL;
-		if (!isWall()) {
+		if (!isObstacle()) {
 			DIRECTION = NEXT_DIRECTION;
 		}
 		x += VEL;
@@ -163,7 +145,7 @@ void Pacman::move() {
 		angle = 270;
 		flip = SDL_FLIP_NONE;
 		y -= VEL;
-		if (isWall()) {
+		if (isObstacle()) {
 			y += VEL;
 		}
 		else {
@@ -175,7 +157,7 @@ void Pacman::move() {
 		angle = 0;
 		flip = SDL_FLIP_NONE;
 		x += VEL;
-		if (isWall()) {
+		if (isObstacle()) {
 			x -= VEL;
 		}
 		else {
@@ -187,7 +169,7 @@ void Pacman::move() {
 		angle = 90;
 		flip = SDL_FLIP_NONE;
 		y += VEL;
-		if (isWall()) {
+		if (isObstacle()) {
 			y -= VEL;
 		}
 		else {
@@ -199,7 +181,7 @@ void Pacman::move() {
 		flip = SDL_FLIP_HORIZONTAL;
 		angle = 0;
 		x -= VEL;
-		if (isWall()) {
+		if (isObstacle()) {
 			x += VEL;
 		}
 		else {
@@ -209,25 +191,11 @@ void Pacman::move() {
 	}
 }
 
-bool Pacman::isWall() {
-	if (x <= -30 && y == 270) {
-		x = 18 * 30;
-		return false;
+void Pacman::render(int frame, bool freeze) {
+	if (started && !freeze) {
+		move();
 	}
-	else if (x >= 570 && y == 270) {
-		x = 0;
-		return false;
-	}
-	for (unsigned int row = 0; row < map->size(); row++) {
-		for (unsigned int col = 0; col < (*map)[row].size(); col++) {
-			if ((*map)[row][col] == "X") {
-				if (checkCollision(col * 30, row * 30)) {
-					return true;
-				}
-			}
-		}
-	}
-	return false;
+	pacmanTexture.render(x, y, 30, 30, &pacmanClip[frame], angle, NULL, flip);
 }
 
 void Pacman::eat() {
@@ -252,6 +220,27 @@ void Pacman::eat() {
 			}
 		}
 	}
+}
+
+bool Pacman::isObstacle() {
+	if (x <= -30 && y == 270) {
+		x = 18 * 30;
+		return false;
+	}
+	else if (x >= 570 && y == 270) {
+		x = 0;
+		return false;
+	}
+	for (unsigned int row = 0; row < map->size(); row++) {
+		for (unsigned int col = 0; col < (*map)[row].size(); col++) {
+			if ((*map)[row][col] == "X") {
+				if (checkCollision(col * 30, row * 30)) {
+					return true;
+				}
+			}
+		}
+	}
+	return false;
 }
 
 bool Pacman::checkCollision(int wallX, int wallY, int w, int h) {
@@ -281,13 +270,6 @@ bool Pacman::checkCollision(int wallX, int wallY, int w, int h) {
 	return true;
 }
 
-void Pacman::setPosition(int xPos, int yPos) {
-	x = xPos;
-	y = yPos;
-	DIRECTION = RIGHT;
-	NEXT_DIRECTION = RIGHT;
-}
-
 std::string Pacman::getScore() {
 	std::ostringstream temp;
 	temp << score;
@@ -296,6 +278,17 @@ std::string Pacman::getScore() {
 
 void Pacman::addScore(int _score) {
 	score += _score;
+}
+
+void Pacman::reset() {
+	x = 9 * 30;
+	y = 11 * 30;
+	angle = 0;
+	flip = SDL_FLIP_NONE;
+	DIRECTION = RIGHT;
+	NEXT_DIRECTION = RIGHT;
+	POWERUP = false;
+	started = false;
 }
 
 Pacman::~Pacman() {
