@@ -6,13 +6,11 @@ enum Pacman::Direction {
 };
 
 Pacman::Pacman() {
-	score = 0;
 	VEL = 1;
-	life = 3;
 	map = NULL;
 	sound_food = NULL;
 	sound_powerup = NULL;
-	reset();
+	restart();
 }
 
 bool Pacman::init(std::vector<std::vector<std::string>>* _map) {
@@ -289,6 +287,12 @@ void Pacman::reset() {
 	NEXT_DIRECTION = RIGHT;
 	POWERUP = false;
 	started = false;
+}
+
+void Pacman::restart() {
+	score = 0;
+	life = 3;
+	reset();
 }
 
 Pacman::~Pacman() {

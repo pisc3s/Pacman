@@ -33,6 +33,7 @@ LTexture powerup;
 LTexture life;
 LTexture highScoreBoard;
 LTexture boardText[6];
+LTexture btnRestart;
 Pacman pacman;
 Ghost redGhost;
 Ghost blueGhost;
@@ -47,6 +48,7 @@ int blinkAlpha = 255;
 vector<int> highscore;
 vector<string> outputScore;
 std::ostringstream fileText;
+SDL_Color btnColor = { 82, 52, 5,255 };
 
 vector<vector<string>> map = {
 	{ "X","X","X","X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X" },
@@ -77,11 +79,13 @@ bool loadMedia();
 void close();
 bool gameSetUp();
 void handleFrame();
+void onRestartListener(SDL_Event e);
 void renderMap();
 void getLeaderboard();
 void showLeaderboard();
 void showHome();
 bool checkWin();
+void restart();
 bool descending(int i, int j) { return i > j; }
 
 int main(int argc, char* args[]) {
@@ -98,11 +102,16 @@ int main(int argc, char* args[]) {
 				quit = true;
 			}
 
-			pacman.handleEvent(e);
-
 			if (e.key.keysym.sym == SDLK_SPACE && !startPressed) {
 				startPressed = true;
 			}
+
+			if (getScore && alpha == 255 && 
+				(e.type == SDL_MOUSEMOTION || e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP)) {
+				onRestartListener(e);
+			}
+
+			pacman.handleEvent(e);
 		}
 
 		handleFrame();
@@ -141,9 +150,9 @@ bool gameSetUp() {
 	blueGhost.addGhost(&redGhost);
 	blueGhost.addGhost(&pinkGhost);
 
-Mix_PlayMusic(bgm, -1);
+	Mix_PlayMusic(bgm, -1);
 
-return true;
+	return true;
 }
 
 void handleFrame() {
@@ -178,6 +187,46 @@ void handleFrame() {
 	}
 	else {
 		ghostFrame++;
+	}
+}
+
+void onRestartListener(SDL_Event e) {
+	int x, y;
+	SDL_GetMouseState(&x, &y);
+
+	bool inside = true;
+	int btnX = SCREEN_WIDTH / 2 - (btnRestart.getWidth() / 2) - 5;
+	int btnY = SCREEN_HEIGHT / 2 - 205 + 360;
+	int btnX2 = btnX + btnRestart.getWidth() + 10;
+	int btnY2 = btnY + btnRestart.getHeight();
+
+	if (x < btnX) {
+		inside = false;
+	}
+	else if (x > btnX2) {
+		inside = false;
+	}
+	else if (y < btnY) {
+		inside = false;
+	}
+	else if (y > btnY2) {
+		inside = false;
+	}
+
+	if (inside) {
+		switch (e.type) {
+		case SDL_MOUSEBUTTONDOWN:
+			btnColor = { 41, 25, 1, 255 };
+			break;
+
+		case SDL_MOUSEBUTTONUP:
+			btnColor = { 82, 52, 5,255 };
+			restart();
+			break;
+		}
+	}
+	else {
+		btnColor = { 82, 52, 5,255 };
 	}
 }
 
@@ -308,6 +357,7 @@ void showLeaderboard() {
 	if (!getScore) {
 		getLeaderboard();
 		getScore = true;
+		alpha = 0;
 	}
 	
 	outputScore.clear();
@@ -328,20 +378,26 @@ void showLeaderboard() {
 			cout << "Unable to render board text texture!\n";
 		}
 		boardText[i].setAlpha(alpha);
-		boardText[i].render(SCREEN_WIDTH / 2 - (boardText[i].getWidth() / 2), SCREEN_HEIGHT / 2 - 170 + (i * 60));
+		boardText[i].render(SCREEN_WIDTH / 2 - (boardText[i].getWidth() / 2), SCREEN_HEIGHT / 2 - 200 + (i * 60));
 	}
 
 	if (!boardText[4].loadFromRenderedText(font, "Your Score", { 0, 0, 0, 255 })) {
 		cout << "Unable to render board text texture!\n";
 	}
 	boardText[4].setAlpha(alpha);
-	boardText[4].render(SCREEN_WIDTH / 2 - (boardText[4].getWidth() / 2), SCREEN_HEIGHT / 2 - 170 + 260);
+	boardText[4].render(SCREEN_WIDTH / 2 - (boardText[4].getWidth() / 2), SCREEN_HEIGHT / 2 - 200 + 245);
 
 	if (!boardText[5].loadFromRenderedText(font, pacman.getScore(), { 0, 0, 0, 255 })) {
 		cout << "Unable to render board text texture!\n";
 	}
 	boardText[5].setAlpha(alpha);
-	boardText[5].render(SCREEN_WIDTH / 2 - (boardText[5].getWidth() / 2), SCREEN_HEIGHT / 2 - 170 + 320);
+	boardText[5].render(SCREEN_WIDTH / 2 - (boardText[5].getWidth() / 2), SCREEN_HEIGHT / 2 - 200 + 305);
+
+	if (!btnRestart.loadFromRenderedText(homeFont, "RESTART", btnColor)) {
+		cout << "Unable to render restart button texture!\n";
+	}
+	btnRestart.setAlpha(alpha);
+	btnRestart.render(SCREEN_WIDTH / 2 - (btnRestart.getWidth() / 2), SCREEN_HEIGHT / 2 - 200 + 360);
 
 	alpha += 10;
 	if(alpha > SDL_ALPHA_OPAQUE){
@@ -360,6 +416,43 @@ bool checkWin() {
 		}
 	}
 	return true;
+}
+
+void restart() {
+	pacman.restart();
+	redGhost.reset();
+	blueGhost.reset();
+	pinkGhost.reset();
+
+	gameFreeze = false;
+	getScore = false;
+	pacmanFrame = 0;
+	ghostFrame = 0;
+	powerUpFrameTime = 0;
+
+	map = {
+		{ "X","X","X","X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X" },
+		{ "X","o","o","o", "o", "o", "o", "o", "o", "X", "o", "o", "o", "o", "o", "o", "o", "o", "X" },
+		{ "X","p","X","X", "o", "X", "X", "X", "o", "X", "o", "X", "X", "X", "o", "X", "X", "p", "X" },
+		{ "X","o","o","o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "X" },
+		{ "X","o","X","X", "o", "X", "o", "X", "X", "X", "X", "X", "o", "X", "o", "X", "X", "o", "X" },
+		{ "X","o","o","o", "o", "X", "o", "o", "o", "X", "o", "o", "o", "X", "o", "o", "o", "o", "X" },
+		{ "X","X","X","X", "o", "X", "X", "X", "o", "X", "o", "X", "X", "X", "o", "X", "X", "X", "X" },
+		{ " "," "," ","X", "o", "X", "o", "o", "o", "o", "o", "o", "o", "X", "o", "X", " ", " ", " " },
+		{ "X","X","X","X", "o", "X", "o", "X", "X", " ", "X", "X", "o", "X", "o", "X", "X", "X", "X" },
+		{ "o","o","o","o", "o", "o", "o", "X", " ", " ", " ", "X", "o", "o", "o", "o", "o", "o", "o" },
+		{ "X","X","X","X", "o", "X", "o", "X", "X", "X", "X", "X", "o", "X", "o", "X", "X", "X", "X" },
+		{ " "," "," ","X", "o", "X", "o", "o", "o", " ", "o", "o", "o", "X", "o", "X", " ", " ", " " },
+		{ "X","X","X","X", "o", "X", "o", "X", "X", "X", "X", "X", "o", "X", "o", "X", "X", "X", "X" },
+		{ "X","o","o","o", "o", "o", "o", "o", "o", "X", "o", "o", "o", "o", "o", "o", "o", "o", "X" },
+		{ "X","o","X","X", "o", "X", "X", "X", "o", "X", "o", "X", "X", "X", "o", "X", "X", "o", "X" },
+		{ "X","p","o","X", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "X", "o", "p", "X" },
+		{ "X","X","o","X", "o", "X", "o", "X", "X", "X", "X", "X", "o", "X", "o", "X", "o", "X", "X" },
+		{ "X","o","o","o", "o", "X", "o", "o", "o", "X", "o", "o", "o", "X", "o", "o", "o", "o", "X" },
+		{ "X","o","X","X", "X", "X", "X", "X", "o", "X", "o", "X", "X", "X", "X", "X", "X", "o", "X" },
+		{ "X","o","o","o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "X" },
+		{ "X","X","X","X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X" }
+	};
 }
 
 bool init() {
@@ -431,6 +524,7 @@ bool loadMedia() {
 	boardText[3].setBlendMode(SDL_BLENDMODE_BLEND);
 	boardText[4].setBlendMode(SDL_BLENDMODE_BLEND);
 	boardText[5].setBlendMode(SDL_BLENDMODE_BLEND);
+	btnRestart.setBlendMode(SDL_BLENDMODE_BLEND);
 
 	if (!homeMenu.loadFromFile("home_bg.jpg")) {
 		cout << "Failed to load home menu texture!\n";
@@ -480,6 +574,7 @@ void close() {
 	boardText[3].free();
 	boardText[4].free();
 	boardText[5].free();
+	btnRestart.free();
 
 	redGhost.free();
 	pinkGhost.free();

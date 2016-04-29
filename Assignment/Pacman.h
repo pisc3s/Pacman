@@ -21,8 +21,10 @@ public:
 	int getY() { return y; };
 	std::string getScore();
 	void addScore(int _score);
+	void setScore(int _score) { score = _score; };
 	bool isPowerUp() { return POWERUP; };
 	void reset();
+	void restart();
 	void free();
 private:
 	enum Direction;

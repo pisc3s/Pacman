@@ -8,16 +8,18 @@ using namespace std;
 
 class Path {
 public:
-	Path(int xPos, int yPos, int gCost, Path* parentPath, vector<vector<string>>* _map = NULL);
-	~Path();
 	int x, y, g;
 	Path* parent;
-	vector<vector<int>> findPath(Path* end);
 	vector<vector<int>> ghost;
+
+	Path(int xPos, int yPos, int gCost, Path* parentPath, vector<vector<string>>* _map = NULL);
+	~Path();
+	vector<vector<int>> findPath(Path* end);
 private:
 	vector<vector<string>>* map;
 	vector<Path*> opened;
 	vector<Path*> closed;
+
 	void clearAll();
 	int getF(Path* end);
 	bool isPath(Path* path);
