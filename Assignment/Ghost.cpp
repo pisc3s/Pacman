@@ -81,7 +81,7 @@ bool Ghost::setMode(int mode) {
 		}
 		MODE = NORMAL_MODE;
 	}
-	else if (mode == WEAKEN_MODE && !isAtHome()) {
+	else if (mode == WEAKEN_MODE && !isAtHome() && MODE != DEAD_MODE) {
 		if (!ghostTexture.loadFromFile("weakenghost.png")) {
 			std::cout << "Failed to load ghost weaken texture!\n";
 			return false;
@@ -89,7 +89,7 @@ bool Ghost::setMode(int mode) {
 		MODE = WEAKEN_MODE;
 		canReverse = true;
 	}
-	else if (mode == WEAKEN_ENDING_MODE && MODE != NORMAL_MODE) {
+	else if (mode == WEAKEN_ENDING_MODE && MODE != NORMAL_MODE && MODE != DEAD_MODE) {
 		MODE = WEAKEN_ENDING_MODE;
 	}
 	else if (mode == DEAD_MODE) {
