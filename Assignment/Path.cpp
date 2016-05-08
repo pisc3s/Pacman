@@ -1,3 +1,4 @@
+//My Code Start
 #include "Path.h"
 #include <cmath>
 
@@ -138,3 +139,4 @@ Path::~Path() {
 	map = NULL;
 	clearAll();
 }
+//My Code End

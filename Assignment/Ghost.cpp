@@ -1,3 +1,4 @@
+//My Code Start
 #include "Ghost.h"
 #include <stdlib.h>
 #include <ctime>
@@ -529,3 +530,4 @@ void Ghost::free() {
 	sound_pacman_die = NULL;
 	sound_ghost_die = NULL;
 }
+//My Code End

@@ -1,3 +1,4 @@
+//My Code Start
 #pragma once
 
 #ifndef __PACMAN_H
@@ -46,3 +47,4 @@ private:
 	void setPowerUp(bool b) { POWERUP = b; };
 };
 #endif
+//My Code End

@@ -1,3 +1,4 @@
+//My Code Start
 #pragma once
 
 #ifndef __GHOST_H
@@ -64,3 +65,4 @@ private:
 	int getOpposite();
 };
 #endif
+//My Code End

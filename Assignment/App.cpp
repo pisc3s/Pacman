@@ -1,3 +1,4 @@
+//My Code Start
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_mixer.h>
@@ -600,3 +601,4 @@ void close() {
 	IMG_Quit();
 	SDL_Quit();
 }
+//My Code End

@@ -1,3 +1,4 @@
+//Code based on the lab example
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
@@ -84,12 +85,13 @@ void LTexture::setBlendMode(SDL_BlendMode blending) {
 void LTexture::setAlpha(Uint8 alpha) {
 	SDL_SetTextureAlphaMod(texture, alpha);
 }
-
+//My Code Start - Method Overloading
 void LTexture::render(int x, int y, int w, int h, SDL_Rect* clip, double angle, SDL_Point* center, SDL_RendererFlip flip) {
 	SDL_Rect renderQuad = { x, y, w, h };
 
 	SDL_RenderCopyEx(gRenderer, texture, clip, &renderQuad, angle, center, flip);
 }
+//My Code End
 
 void LTexture::render(int x, int y, SDL_Rect* clip, double angle, SDL_Point* center, SDL_RendererFlip flip) {
 	SDL_Rect renderQuad = { x, y, width, height };
