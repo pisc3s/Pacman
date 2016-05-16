@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <ctime>
 
+//Constructor
 Ghost::Ghost() {
 	VEL = 1;
 	pacman = NULL;
@@ -10,6 +11,8 @@ Ghost::Ghost() {
 	reset();
 }
 
+//Initialize everything and load all the media
+//Return false if fails to laod
 bool Ghost::init(int priority, int xPos, int yPos, std::vector<std::vector<std::string>> _map, std::string file) {
 	PRIORITY = priority;
 	x = xPos * 30;
@@ -74,6 +77,11 @@ bool Ghost::init(int priority, int xPos, int yPos, std::vector<std::vector<std::
 	return setMode(NORMAL_MODE);
 }
 
+//Set the mode of the ghost
+//NORMAL_MODE
+//WEAKEN_MODE
+//WEAKEN_ENDING_MODE
+//DEAD_MODE
 bool Ghost::setMode(int mode) {
 	if (mode == NORMAL_MODE && !isGoingHome) {
 		if (!ghostTexture.loadFromFile(filePath)) {
@@ -103,23 +111,31 @@ bool Ghost::setMode(int mode) {
 	return true;
 }
 
+//Set the freeze frame time
 void Ghost::setFrameTime(int frame) {
 	frameTime = frame;
 }
 
+//Add the ghost to be reference later
 void Ghost::addGhost(Ghost* _ghost) {
 	ghost.push_back(_ghost);
 }
 
+//Render the Ghost
 void Ghost::render(int frame, bool freeze) {
+	//If game is not freezed then proceed
 	if (!freeze) {
+		//If ghost is going back home then continue move back to home
 		if (isGoingHome) {
 			backToHome();
 			move();
 		}
+		//If it is within freeze time then decrease frame time by 1 and hold
 		else if (frameTime > 0) {
 			frameTime--;
 		}
+		//If it is at home then check is there any ghost with priority higher than itself
+		//If true then back to home or stay at default position
 		else if (isAtHome()) {
 			bool backHome = false;
 			int xDistance = 270 - x;
@@ -132,6 +148,7 @@ void Ghost::render(int frame, bool freeze) {
 				}
 			}
 
+			//If false then move out of the home box
 			if (!backHome) {
 				if (xDistance > 0) {
 					NEXT_MOVE_X = GHOST_RIGHT;
@@ -146,6 +163,7 @@ void Ghost::render(int frame, bool freeze) {
 			move();
 		}
 		else {
+			//If it is not weaken then chase the Pacman
 			if (MODE != WEAKEN_MODE && MODE != WEAKEN_ENDING_MODE) {
 				chasePacman();
 			}
@@ -153,6 +171,7 @@ void Ghost::render(int frame, bool freeze) {
 		}
 	}
 	
+	//Render the ghost in different mode
 	if (MODE == NORMAL_MODE) {
 		ghostTexture.render(x, y, 30, 30, &ghostClip[(frame / 30) + DIRECTION]);
 	}
@@ -166,11 +185,16 @@ void Ghost::render(int frame, bool freeze) {
 		ghostTexture.render(x, y, 30, 30, &ghostClip[DIRECTION / 2]);
 	}
 
+	//Check is it colllided with the Pacman
 	isPacmanCollide();
 }
 
+//Perform ghost movement
 void Ghost::move() {
 	bool isNextMove = false;
+
+	//If there is next move then check is there any obstacle
+	//If no then next direction become current direction
 	switch (NEXT_MOVE_X) {
 	case GHOST_RIGHT:
 		x += VEL;
@@ -211,6 +235,7 @@ void Ghost::move() {
 			break;
 	}
 
+	//If there is no next move then random a direction but no reverse direction
 	if(!isNextMove){
 		std::vector<int> way;
 
@@ -251,11 +276,13 @@ void Ghost::move() {
 		}
 	}
 
+	//If can reverse direction then reverse once
 	if (canReverse) {
 		DIRECTION = getOpposite();
 		canReverse = false;
 	}
 
+	//Ghost move in the direction set
 	switch (DIRECTION) {
 	case GHOST_UP:
 		y -= VEL;
@@ -283,10 +310,12 @@ void Ghost::move() {
 		break;
 	}
 
+	//Reset back to none
 	NEXT_MOVE_X = NONE;
 	NEXT_MOVE_Y = NONE;
 }
 
+//Find for the shortest path to chase the Pacman
 void Ghost::chasePacman() {
 	Path* start = new Path(x / 30, y / 30, 0, NULL, &map);
 	Path* end = new Path(pacman->getX() / 30, pacman->getY() / 30, 0, NULL);
@@ -305,6 +334,7 @@ void Ghost::chasePacman() {
 
 	chaseFrame--;
 
+	//Find the path every 100 frame
 	if (chaseFrame <= 0) {
 		chasePath = start->findPath(end);
 		chaseFrame = 100;
@@ -315,6 +345,8 @@ void Ghost::chasePacman() {
 		chaseCounter = 0;
 	}
 
+	//Perform the path return from the algorithm
+	//Set next direction
 	nextX = chasePath[chaseCounter][0] * 30;
 	nextY = chasePath[chaseCounter][1] * 30;
 
@@ -357,6 +389,7 @@ void Ghost::chasePacman() {
 	}
 }
 
+//Find shortest path to back to the home box
 void Ghost::backToHome() {
 	Path* start = new Path(x / 30, y / 30, 0, NULL, &map);
 	Path* end = new Path(xDefault / 30, yDefault / 30, 0, NULL);
@@ -364,11 +397,14 @@ void Ghost::backToHome() {
 	NEXT_MOVE_Y = NONE;
 	chaseCounter = 0;
 
+	//Set ghost isGoingHome flag
 	if (!isGoingHome) {
 		isGoingHome = true;
 		backHomePath = start->findPath(end);
 		backHomePathCounter = 1;
 	}
+
+	//If reached home then stop performing this function
 	if (x == xDefault && y == yDefault) {
 		isGoingHome = false;
 		setMode(NORMAL_MODE);
@@ -380,6 +416,8 @@ void Ghost::backToHome() {
 		backHomePathCounter = 0;
 	}
 
+	//Perform the path return from the algorithm
+	//Set next direction
 	int nextX = backHomePath[backHomePathCounter][0] * 30;
 	int nextY = backHomePath[backHomePathCounter][1] * 30;
 
@@ -403,6 +441,7 @@ void Ghost::backToHome() {
 	}
 }
 
+//Check is it at the home box
 bool Ghost::isAtHome() {
 	if (x >= 240 && x <= 300 && y == 270 && MODE != DEAD_MODE) {
 		return true;
@@ -410,7 +449,10 @@ bool Ghost::isAtHome() {
 	return false;
 }
 
+//Check is there any obstacle at the current direction
 bool Ghost::isObstacle() {
+	//If exceed the left side screen then move to the right side
+	//else if exceed the right side screen then move to the left side
 	if (x <= -30 && y == 270) {
 		x = 18 * 30;
 		return false;
@@ -419,6 +461,7 @@ bool Ghost::isObstacle() {
 		x = 0;
 		return false;
 	}
+	//Check if there is a wall collision detection
 	for (unsigned int row = 0; row < map.size(); row++) {
 		for (unsigned int col = 0; col < map[row].size(); col++) {
 			if (map[row][col] == "X") {
@@ -428,6 +471,7 @@ bool Ghost::isObstacle() {
 			}
 		}
 	}
+	//Check if there is a ghost block its path
 	if (MODE != DEAD_MODE && !isGoingHome) {
 		for (unsigned int i = 0; i < ghost.size(); i++) {
 			if (ghost[i]->getMode() != DEAD_MODE && !ghost[i]->isAtHome()) {
@@ -442,9 +486,12 @@ bool Ghost::isObstacle() {
 	return false;
 }
 
+//Check if ghost is collided with the Pacman
 void Ghost::isPacmanCollide() {
 	bool isCollide = checkCollision(pacman->getX() + 7, pacman->getY() + 7, 16, 16);
 
+	//If Powerup then ghost dead
+	//Else Pacman dead
 	if (isCollide) {
 		if (MODE == WEAKEN_MODE || MODE == WEAKEN_ENDING_MODE) {
 			Mix_PlayChannel(PRIORITY, sound_ghost_die, 0);
@@ -463,6 +510,7 @@ void Ghost::isPacmanCollide() {
 	}
 }
 
+//Check the collision
 bool Ghost::checkCollision(int wallX, int wallY, int w, int h) {
 	int top = y;
 	int bottom = y + 30;
@@ -490,6 +538,7 @@ bool Ghost::checkCollision(int wallX, int wallY, int w, int h) {
 	return true;
 }
 
+//Return the opposite direction to the current direction
 int Ghost::getOpposite() {
 	switch (DIRECTION){
 	case GHOST_UP:
@@ -504,6 +553,7 @@ int Ghost::getOpposite() {
 	return -1;
 }
 
+//Reset to the default
 void Ghost::reset() {
 	x = xDefault;
 	y = yDefault;
@@ -519,10 +569,12 @@ void Ghost::reset() {
 	}
 }
 
+//Destructor
 Ghost::~Ghost() {
 	free();
 }
 
+//Free memory resources
 void Ghost::free() {
 	ghostTexture.free();
 	Mix_FreeChunk(sound_pacman_die);

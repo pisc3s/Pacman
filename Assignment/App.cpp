@@ -107,6 +107,7 @@ int main(int argc, char* args[]) {
 				startPressed = true;
 			}
 
+			//Handle Restart Button Event
 			if (getScore && alpha == 255 && 
 				(e.type == SDL_MOUSEMOTION || e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP)) {
 				onRestartListener(e);
@@ -129,6 +130,7 @@ int main(int argc, char* args[]) {
 	return 0;
 }
 
+//Set up all the file and initialize ghost and pacman
 bool gameSetUp() {
 	if (!init()) {
 		cout << "Failed to initialize!\n";
@@ -156,6 +158,7 @@ bool gameSetUp() {
 	return true;
 }
 
+//Handle all the animation frame time
 void handleFrame() {
 	if (powerUpFrameTime > 0) {
 		if (powerUpFrameTime == 540) {
@@ -191,6 +194,7 @@ void handleFrame() {
 	}
 }
 
+//Restart button event handler
 void onRestartListener(SDL_Event e) {
 	int x, y;
 	SDL_GetMouseState(&x, &y);
@@ -231,6 +235,10 @@ void onRestartListener(SDL_Event e) {
 	}
 }
 
+//Render the map
+//X = Wall
+//o = Pac-dot
+//p = Power Pallet
 void renderMap() {
 	SDL_SetRenderDrawColor(gRenderer, 242, 252, 255, 255);
 	SDL_RenderClear(gRenderer);
@@ -280,6 +288,7 @@ void renderMap() {
 	}
 }
 
+//Render home screen
 void showHome() {
 	if (startPressed) {
 		alpha -= 6;
@@ -326,9 +335,11 @@ void showHome() {
 	SDL_RenderPresent(gRenderer);
 }
 
+//Retrieve leaderboard from file
 void getLeaderboard() {
 	highscore.clear();
 
+	//Store current score into the file
 	ofstream output;
 	output.open("leaderboard.txt", fstream::app);
 	if (output) {
@@ -339,6 +350,7 @@ void getLeaderboard() {
 	output.close();
 	output.clear();
 
+	//Load score from file into the memory
 	ifstream input;
 	input.open("leaderboard.txt");
 
@@ -354,6 +366,7 @@ void getLeaderboard() {
 	sort(highscore.begin(), highscore.end(), descending);
 }
 
+//Render leaderboard
 void showLeaderboard() {
 	if (!getScore) {
 		getLeaderboard();
@@ -361,6 +374,7 @@ void showLeaderboard() {
 		alpha = 0;
 	}
 	
+	//Output all the score
 	outputScore.clear();
 	outputScore.push_back("High Score");
 	for (unsigned int i = 0; i < highscore.size(); i++) {
@@ -408,6 +422,7 @@ void showLeaderboard() {
 	SDL_RenderPresent(gRenderer);
 }
 
+//Check if all the pac-dot and power pallets are eaten
 bool checkWin() {
 	for (unsigned int y = 0; y < map.size(); y++) {
 		for (unsigned int x = 0; x < map[y].size(); x++) {
@@ -419,6 +434,7 @@ bool checkWin() {
 	return true;
 }
 
+//Restart the game
 void restart() {
 	pacman.restart();
 	redGhost.reset();
@@ -456,6 +472,7 @@ void restart() {
 	};
 }
 
+//Initialize SDL settings
 bool init() {
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
 		cout << "SDL could not initialize! SDL Error: " << SDL_GetError() << endl;
@@ -498,6 +515,7 @@ bool init() {
 	return true;
 }
 
+//Load resources
 bool loadMedia() {
 	if (!wall.loadFromFile("wall.jpg")) {
 		cout << "Failed to load wall texture!\n";
@@ -561,6 +579,7 @@ bool loadMedia() {
 		pinkGhost.init(2, 8, 9, map, "pinkghost.png") && blueGhost.init(3, 10, 9, map, "blueghost.png");
 }
 
+//Free all memory resources
 void close() {
 	pacman.free();
 	wall.free();

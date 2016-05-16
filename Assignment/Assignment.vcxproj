@@ -40,13 +40,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -69,12 +69,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\SDL2 Dev\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\SDL2 Dev\lib\x86;$(LibraryPath)</LibraryPath>
+    <IncludePath>E:\SDL2 Dev\include;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\SDL2 Dev\lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>C:\SDL2 Dev\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\SDL2 Dev\lib\x86;$(LibraryPath)</LibraryPath>
+    <IncludePath>E:\SDL2 Dev\include;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\SDL2 Dev\lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -89,7 +89,7 @@
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>copy "C:\SDL2 Dev\lib\x86\*.dll" "$(OutDir)*.dll"</Command>
+      <Command>copy "E:\SDL2 Dev\lib\x86\*.dll" "$(OutDir)*.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -119,7 +119,7 @@
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>copy "C:\SDL2 Dev\lib\x86\*.dll" "$(OutDir)*.dll"</Command>
+      <Command>copy "E:\SDL2 Dev\lib\x86\*.dll" "$(OutDir)*.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

@@ -6,6 +6,7 @@ enum Pacman::Direction {
 	UP, RIGHT, DOWN, LEFT
 };
 
+//Constructor
 Pacman::Pacman() {
 	VEL = 1;
 	map = NULL;
@@ -14,6 +15,8 @@ Pacman::Pacman() {
 	restart();
 }
 
+//Initialize everything and load all the media
+//Return false if fails to load
 bool Pacman::init(std::vector<std::vector<std::string>>* _map) {
 	map = _map;
 
@@ -72,6 +75,7 @@ bool Pacman::init(std::vector<std::vector<std::string>>* _map) {
 	return true;
 }
 
+//Record the keyboard event
 void Pacman::handleEvent(SDL_Event e) {
 	if (e.type == SDL_KEYDOWN) {
 		switch (e.key.keysym.sym) {
@@ -102,10 +106,14 @@ void Pacman::handleEvent(SDL_Event e) {
 	}
 }
 
+//Movement Function
 void Pacman::move() {
 	if (isPowerUp()) {
 		setPowerUp(false);
 	}
+
+	//If there is next direction then check is there any obstacle
+	//If it has no obstacle then it will become the current direction
 	switch (NEXT_DIRECTION) {
 	case UP:
 		y -= VEL;
@@ -139,6 +147,8 @@ void Pacman::move() {
 		x += VEL;
 		break;
 	}
+
+	//Move to the direction set and with equivalent sprite animation
 	switch (DIRECTION) {
 	case UP:
 		angle = 270;
@@ -190,6 +200,7 @@ void Pacman::move() {
 	}
 }
 
+//Render the Pacman to the screen
 void Pacman::render(int frame, bool freeze) {
 	if (started && !freeze) {
 		move();
@@ -197,9 +208,12 @@ void Pacman::render(int frame, bool freeze) {
 	pacmanTexture.render(x, y, 30, 30, &pacmanClip[frame], angle, NULL, flip);
 }
 
+//Eat pac-dots and the power pallets
 void Pacman::eat() {
 	for (unsigned int row = 0; row < map->size(); row++) {
 		for (unsigned int col = 0; col < (*map)[row].size(); col++) {
+			//Detect is it collided with the pac-dots
+			//Add 100 score if true and erase the dot from the map
 			if ((*map)[row][col] == "o") {
 				if (checkCollision((col * 30) + 15, (row * 30) + 15, 0, 0)) {
 					Mix_PlayChannel(-1, sound_food, 0);
@@ -208,6 +222,9 @@ void Pacman::eat() {
 					return;
 				}
 			}
+
+			//Detect is it collided with the power pallets
+			//Add 500 score if true and erase the power palletes from the map
 			if ((*map)[row][col] == "p") {
 				if (checkCollision((col * 30) + 15, (row * 30) + 15, 0, 0)) {
 					Mix_PlayChannel(-1, sound_powerup, 0);
@@ -221,7 +238,10 @@ void Pacman::eat() {
 	}
 }
 
+//Check that is there any obstacle at the current position
 bool Pacman::isObstacle() {
+	//If exceed the left side screen then move to the right side
+	//else if exceed the right side screen then move to the left side
 	if (x <= -30 && y == 270) {
 		x = 18 * 30;
 		return false;
@@ -230,6 +250,7 @@ bool Pacman::isObstacle() {
 		x = 0;
 		return false;
 	}
+	//Check if there is a wall collision detection
 	for (unsigned int row = 0; row < map->size(); row++) {
 		for (unsigned int col = 0; col < (*map)[row].size(); col++) {
 			if ((*map)[row][col] == "X") {
@@ -242,6 +263,7 @@ bool Pacman::isObstacle() {
 	return false;
 }
 
+//Collision detection
 bool Pacman::checkCollision(int wallX, int wallY, int w, int h) {
 	int top = y;
 	int bottom = y + 30;
@@ -269,16 +291,19 @@ bool Pacman::checkCollision(int wallX, int wallY, int w, int h) {
 	return true;
 }
 
+//Return current score
 std::string Pacman::getScore() {
 	std::ostringstream temp;
 	temp << score;
 	return temp.str();
 }
 
+//Add score to current score
 void Pacman::addScore(int _score) {
 	score += _score;
 }
 
+//Reset everything to default
 void Pacman::reset() {
 	x = 9 * 30;
 	y = 11 * 30;
@@ -290,16 +315,19 @@ void Pacman::reset() {
 	started = false;
 }
 
+//Restart the game
 void Pacman::restart() {
 	score = 0;
 	life = 3;
 	reset();
 }
 
+//Destructor
 Pacman::~Pacman() {
 	free();
 }
 
+//Free memory resources
 void Pacman::free() {
 	pacmanTexture.free();
 	Mix_FreeChunk(sound_food);
